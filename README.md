@@ -25,3 +25,16 @@ Private repos can use Pages on paid GitHub plans; on Free, the repo generally ne
 ### If Actions fails with “Get Pages site failed” / `HttpError: Not Found`
 
 That usually comes from the optional `configure-pages` step running before Pages exists. This repo’s workflow **does not use** that step anymore—pull the latest `deploy-pages.yml`, push to `main`, and re-run the workflow.
+
+## Supabase multi-user setup (Google sign-in)
+
+1. Create a Supabase project.
+2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
+3. In Supabase, open **Authentication → Providers → Google** and enable Google OAuth.
+4. Add your site URL(s) to Google OAuth redirect allowlist and Supabase redirect URLs.
+5. In [`supabase-config.js`](supabase-config.js), set:
+   - `url` to your Supabase project URL
+   - `anonKey` to your Supabase anon public key
+6. Reload `index.html`.
+
+When configured, users can sign in with Google and their workouts/schedule are stored per-user in Supabase with RLS protection.
