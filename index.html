@@ -757,6 +757,9 @@
       }
       .exercise-item .actions { justify-content: flex-end; flex-wrap: wrap; }
       .exercise-list-toolbar .pill-input { min-width: 0; width: 100%; }
+      #technique-panel-anchor {
+        scroll-margin-top: min(120px, max(80px, calc(env(safe-area-inset-top, 0px) + 92px)));
+      }
       .calendar-header {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -1082,7 +1085,7 @@
               <tr><th>Last workout date</th><td id="progLastDate">-</td></tr>
             </tbody></table>
             <p class="hint">Open an exercise progress window (modal) to add sessions and see exercise-specific best load, best reps, and trend history.</p>
-            <div style="margin-top:10px">
+            <div id="technique-panel-anchor" style="margin-top:10px" tabindex="-1">
               <label for="techExerciseSelect" class="muted" style="display:block;margin-bottom:6px">Exercise technique panel</label>
               <select id="techExerciseSelect"></select>
               <div class="tech-panel" id="techniquePanel">
@@ -2588,6 +2591,7 @@
             const picker = document.getElementById("techExerciseSelect");
             if (picker) picker.value = ex.id;
             renderTechniquePanel();
+            scrollMyWorkoutsTechniqueIntoView();
           });
           item.querySelector("[data-action='remove']").addEventListener("click", () => {
             if (!confirm("Remove " + ex.name + " from your program?")) return;
@@ -2605,6 +2609,17 @@
             renderAll();
           });
           host.appendChild(item);
+        });
+      }
+      function scrollMyWorkoutsTechniqueIntoView() {
+        if (!window.matchMedia("(max-width: 720px)").matches) return;
+        const anchor = document.getElementById("technique-panel-anchor");
+        if (!anchor) return;
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            anchor.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+          });
         });
       }
       function renderTechniqueOptions() {
