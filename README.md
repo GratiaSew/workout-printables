@@ -21,3 +21,7 @@ Example: `https://gratiaseew.github.io/workout-printables/`
 5. Refresh **Settings → Pages**; when the workflow succeeds, the **Visit site** link appears.
 
 Private repos can use Pages on paid GitHub plans; on Free, the repo generally needs to be **public** for Pages to work.
+
+### If Actions fails with “Get Pages site failed” / `HttpError: Not Found`
+
+That usually comes from the optional `configure-pages` step running before Pages exists. This repo’s workflow **does not use** that step anymore—pull the latest `deploy-pages.yml`, push to `main`, and re-run the workflow.

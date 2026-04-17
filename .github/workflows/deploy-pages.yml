@@ -27,8 +27,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v4
+      # No configure-pages: it calls the Pages API before a site exists and can
+      # fail with "Get Pages site failed" / HttpError Not Found on first deploy.
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
@@ -37,4 +37,4 @@ jobs:
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
