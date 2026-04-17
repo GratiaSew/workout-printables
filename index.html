@@ -183,6 +183,9 @@
         <div class="top-actions">
           <input class="pill-input" id="nameInput" placeholder="Set your name (optional)" />
           <button class="btn ghost" id="saveNameBtn" type="button">Save name</button>
+          <span class="muted" id="authStatus">Offline mode</span>
+          <button class="btn secondary" id="signInBtn" type="button">Sign in with Google</button>
+          <button class="btn ghost" id="signOutBtn" type="button" hidden>Sign out</button>
         </div>
       </header>
 
@@ -349,6 +352,10 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth-service.js"></script>
+  <script src="data-service.js"></script>
   <script src="program-config.js"></script>
   <script>
     (function () {
@@ -361,22 +368,29 @@
         calendar: document.getElementById("view-calendar"),
         printables: document.getElementById("view-printables"),
       };
+      const cloud = { enabled: false, user: null, syncing: false, syncTimer: null, suppressSync: false };
       const state = { activeTab: "dashboard", calendarMonth: startOfMonth(new Date()), selectedExerciseId: null, selectedTechniqueExerciseId: null, data: loadData() };
 
       const CATALOG_LINES = (window.WorkoutConfig && Array.isArray(window.WorkoutConfig.CATALOG_LINES)) ? window.WorkoutConfig.CATALOG_LINES : [];
       const COACH_SPLIT_DAYS = (window.WorkoutConfig && Array.isArray(window.WorkoutConfig.COACH_SPLIT_DAYS)) ? window.WorkoutConfig.COACH_SPLIT_DAYS : [];
       const TECHNIQUE_GUIDES = (window.WorkoutConfig && window.WorkoutConfig.TECHNIQUE_GUIDES) ? window.WorkoutConfig.TECHNIQUE_GUIDES : {};
 
-      ensureExerciseCatalog();
-      ensureSeedData();
-      ensureCoachSplitExercises();
-      ensureDefaultSchedule();
-      migrateLegacyTemplateToCoachSplit();
-      syncWholeScheduleIds();
-      saveData();
       bindAll();
-      renderAll();
-      applyHashTab();
+      initApp();
+
+      async function initApp() {
+        normalizeStateIds();
+        ensureExerciseCatalog();
+        ensureSeedData();
+        ensureCoachSplitExercises();
+        ensureDefaultSchedule();
+        migrateLegacyTemplateToCoachSplit();
+        syncWholeScheduleIds();
+        saveData();
+        renderAll();
+        applyHashTab();
+        await initAuthBootstrap();
+      }
 
       function loadData() {
         try {
@@ -392,9 +406,141 @@
           };
         } catch (_) { return { exercises: [], logsByExercise: {}, workoutDays: {}, schedule: null, catalogSeeded: false }; }
       }
-      function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); }
+      function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+        queueCloudSync();
+      }
+      function uuidv4() {
+        if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, function (c) {
+          const x = window.crypto && window.crypto.getRandomValues ? window.crypto.getRandomValues(new Uint8Array(1))[0] : Math.floor(Math.random() * 256);
+          return (Number(c) ^ (x & 15 >> (Number(c) / 4))).toString(16);
+        });
+      }
+      function isUuid(v) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || ""));
+      }
+      function normalizeStateIds() {
+        const exMap = {};
+        state.data.exercises = (state.data.exercises || []).map((ex) => {
+          const oldId = String(ex.id || "");
+          const newId = isUuid(oldId) ? oldId : uuidv4();
+          exMap[oldId] = newId;
+          return Object.assign({}, ex, { id: newId, createdAt: ex.createdAt || new Date().toISOString() });
+        });
+        const nextLogs = {};
+        Object.keys(state.data.logsByExercise || {}).forEach((oldId) => {
+          const mappedEx = exMap[oldId] || oldId;
+          const arr = Array.isArray(state.data.logsByExercise[oldId]) ? state.data.logsByExercise[oldId] : [];
+          nextLogs[mappedEx] = arr.map((l) => Object.assign({}, l, { id: isUuid(l.id) ? l.id : uuidv4(), createdAt: l.createdAt || new Date().toISOString() }));
+        });
+        state.data.logsByExercise = nextLogs;
+        if (state.data.schedule && Array.isArray(state.data.schedule.days)) {
+          state.data.schedule.days = state.data.schedule.days.map((day) => {
+            const fixedIds = (Array.isArray(day.exerciseIds) ? day.exerciseIds : []).map((id) => exMap[id] || id);
+            return Object.assign({}, day, { id: isUuid(day.id) ? day.id : uuidv4(), exerciseIds: fixedIds });
+          });
+        }
+      }
+      async function initAuthBootstrap() {
+        const authStatus = document.getElementById("authStatus");
+        const signInBtn = document.getElementById("signInBtn");
+        const signOutBtn = document.getElementById("signOutBtn");
+        cloud.enabled = !!(window.AuthService && window.AuthService.isConfigured && window.AuthService.isConfigured());
+        if (!cloud.enabled) {
+          if (authStatus) authStatus.textContent = "Offline mode";
+          if (signInBtn) signInBtn.hidden = true;
+          if (signOutBtn) signOutBtn.hidden = true;
+          return;
+        }
+        if (authStatus) authStatus.textContent = "Checking session...";
+        const session = await window.AuthService.getSession();
+        await applySession(session);
+        window.AuthService.onAuthStateChange(async function (_event, nextSession) {
+          await applySession(nextSession);
+        });
+      }
+      async function applySession(session) {
+        cloud.user = session && session.user ? session.user : null;
+        updateAuthUi();
+        if (!cloud.user) {
+          state.data = { exercises: [], logsByExercise: {}, workoutDays: {}, schedule: null, catalogSeeded: true };
+          renderAll();
+          return;
+        }
+        await loadFromCloudOrImport();
+      }
+      function updateAuthUi() {
+        const authStatus = document.getElementById("authStatus");
+        const signInBtn = document.getElementById("signInBtn");
+        const signOutBtn = document.getElementById("signOutBtn");
+        if (!cloud.enabled) {
+          if (authStatus) authStatus.textContent = "Offline mode";
+          if (signInBtn) signInBtn.hidden = true;
+          if (signOutBtn) signOutBtn.hidden = true;
+          return;
+        }
+        if (cloud.user) {
+          if (authStatus) authStatus.textContent = cloud.user.email || "Signed in";
+          if (signInBtn) signInBtn.hidden = true;
+          if (signOutBtn) signOutBtn.hidden = false;
+        } else {
+          if (authStatus) authStatus.textContent = "Sign in to sync";
+          if (signInBtn) signInBtn.hidden = false;
+          if (signOutBtn) signOutBtn.hidden = true;
+        }
+      }
+      async function loadFromCloudOrImport() {
+        if (!cloud.user || !window.DataService) return;
+        try {
+          const localBefore = loadData();
+          const remote = await window.DataService.loadUserData(cloud.user.id);
+          if (remote.empty) {
+            const hasLocal = (localBefore.exercises && localBefore.exercises.length) || Object.keys(localBefore.logsByExercise || {}).length || Object.keys(localBefore.workoutDays || {}).length;
+            if (hasLocal && confirm("Import your existing local browser workouts into your signed-in cloud account?")) {
+              await window.DataService.saveUserData(cloud.user.id, localBefore);
+              state.data = localBefore;
+            } else {
+              state.data = remote.data;
+              ensureExerciseCatalog();
+              ensureSeedData();
+              ensureCoachSplitExercises();
+              ensureDefaultSchedule();
+              syncWholeScheduleIds();
+              await window.DataService.saveUserData(cloud.user.id, state.data);
+            }
+          } else {
+            state.data = remote.data;
+          }
+          normalizeStateIds();
+          syncWholeScheduleIds();
+          cloud.suppressSync = true;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+          cloud.suppressSync = false;
+          renderAll();
+        } catch (err) {
+          console.error(err);
+          alert("Could not load cloud data right now. Using local data for this session.");
+        }
+      }
+      function queueCloudSync() {
+        if (!cloud.enabled || !cloud.user || cloud.suppressSync || !window.DataService) return;
+        if (cloud.syncTimer) clearTimeout(cloud.syncTimer);
+        cloud.syncTimer = setTimeout(runCloudSync, 450);
+      }
+      async function runCloudSync() {
+        if (cloud.syncing || !cloud.user || cloud.suppressSync) return;
+        cloud.syncing = true;
+        try {
+          await window.DataService.saveUserData(cloud.user.id, state.data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          cloud.syncing = false;
+        }
+      }
       function makeExercise(name, category, targetSets, targetReps) {
-        return { id: "ex_" + Math.random().toString(36).slice(2, 10), name: name, category: category, targetSets: Number(targetSets) || 4, targetReps: Number(targetReps) || 10, createdAt: new Date().toISOString() };
+        return { id: uuidv4(), name: name, category: category, targetSets: Number(targetSets) || 4, targetReps: Number(targetReps) || 10, createdAt: new Date().toISOString() };
       }
       function isoDateLocal(d) {
         const y = d.getFullYear();
@@ -473,7 +619,7 @@
       function makeScheduleDay(label, type, names) {
         const exerciseNames = (names || []).map(String);
         const exerciseIds = exerciseNames.map((n) => findExerciseIdByName(n)).filter(Boolean);
-        return { id: "sd_" + Math.random().toString(36).slice(2, 9), label: label, type: type, exerciseNames: exerciseNames, exerciseIds: exerciseIds };
+        return { id: uuidv4(), label: label, type: type, exerciseNames: exerciseNames, exerciseIds: exerciseIds };
       }
       function syncScheduleDayIds(day) {
         if (!Array.isArray(day.exerciseNames) || !day.exerciseNames.length) {
@@ -728,6 +874,23 @@
           if (v) localStorage.setItem(NAME_KEY, v); else localStorage.removeItem(NAME_KEY);
           renderGreeting();
         });
+        document.getElementById("signInBtn").addEventListener("click", async () => {
+          if (!window.AuthService || !window.AuthService.signInWithGoogle) return;
+          try {
+            await window.AuthService.signInWithGoogle();
+          } catch (err) {
+            console.error(err);
+            alert("Google sign-in failed. Check Supabase URL/key and Google provider settings.");
+          }
+        });
+        document.getElementById("signOutBtn").addEventListener("click", async () => {
+          if (!window.AuthService || !window.AuthService.signOut) return;
+          try {
+            await window.AuthService.signOut();
+          } catch (err) {
+            console.error(err);
+          }
+        });
         document.getElementById("addExerciseForm").addEventListener("submit", function (e) {
           e.preventDefault();
           const name = document.getElementById("exName").value.trim();
@@ -823,7 +986,7 @@
           const sets = Number(document.getElementById("logSets").value || 1);
           if (!date || reps <= 0 || sets <= 0 || weight < 0) return;
           const list = getExerciseLogs(state.selectedExerciseId);
-          list.push({ id: "log_" + Math.random().toString(36).slice(2, 10), date: date, weight: weight, reps: reps, sets: sets, notes: document.getElementById("logNotes").value.trim(), createdAt: new Date().toISOString() });
+          list.push({ id: uuidv4(), date: date, weight: weight, reps: reps, sets: sets, notes: document.getElementById("logNotes").value.trim(), createdAt: new Date().toISOString() });
           state.data.logsByExercise[state.selectedExerciseId] = list;
           state.data.workoutDays[date] = true;
           saveData();
