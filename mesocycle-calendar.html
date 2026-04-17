@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>4-Week Mesocycle Calendar (Printable)</title>
+  <style>
+    :root { --ink: #111; --line: #bdbdbd; --muted: #666; --paper: #fff; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #e9e9e9;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 10.5px;
+    }
+    .toolbar {
+      padding: 12px 16px;
+      background: #222;
+      color: #eee;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      background: #f5f5f5;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    @page { size: A4; margin: 10mm; }
+    @media print {
+      body { background: var(--paper); }
+      .toolbar { display: none !important; }
+      .sheet { box-shadow: none !important; margin: 0 !important; }
+    }
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 12px auto 18px;
+      background: var(--paper);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      padding: 8mm 10mm 10mm;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .sub {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 0 10px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 6px;
+      vertical-align: top;
+    }
+    th {
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: #fafafa;
+    }
+    .wk { width: 9%; text-align: center; font-weight: 800; }
+    .day { width: 10.5%; }
+    .check { height: 34px; }
+    .notes { height: 52px; }
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 14px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 9.5px;
+      line-height: 1.35;
+    }
+    .kbd {
+      display: inline-block;
+      border: 1px solid #cfcfcf;
+      border-bottom-width: 2px;
+      padding: 0 6px;
+      border-radius: 6px;
+      font-weight: 700;
+      color: #222;
+      background: #fff;
+    }
+    .split {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed #cfcfcf;
+      font-size: 9.5px;
+      color: #333;
+      line-height: 1.45;
+    }
+    .split strong { letter-spacing: 0.04em; }
+    .footer { margin-top: 8px; font-size: 8px; color: var(--muted); text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <span>Shade or check boxes after each session. Optional: log average steps or treadmill minutes in week notes.</span>
+  </div>
+
+  <section class="sheet">
+    <h1>4-week training map</h1>
+    <p class="sub">
+      Mesocycle start date: ____________ &nbsp; Bodyweight (optional): ____________ &nbsp; Protein target (g/day): ____________
+    </p>
+
+    <table aria-label="Weekly checklist">
+      <thead>
+        <tr>
+          <th class="wk">Week</th>
+          <th class="day">Mon</th>
+          <th class="day">Tue</th>
+          <th class="day">Wed</th>
+          <th class="day">Thu</th>
+          <th class="day">Fri</th>
+          <th class="day">Sat</th>
+          <th class="day">Sun</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th class="wk">1</th>
+          <td class="check"></td><td class="check"></td><td class="check"></td><td class="check"></td>
+          <td class="check"></td><td class="check"></td><td class="check"></td>
+        </tr>
+        <tr>
+          <th class="wk">Focus</th>
+          <td class="notes" colspan="7">Week 1 notes (sleep, soreness, steps, nutrition):</td>
+        </tr>
+
+        <tr>
+          <th class="wk">2</th>
+          <td class="check"></td><td class="check"></td><td class="check"></td><td class="check"></td>
+          <td class="check"></td><td class="check"></td><td class="check"></td>
+        </tr>
+        <tr>
+          <th class="wk">Focus</th>
+          <td class="notes" colspan="7">Week 2 notes:</td>
+        </tr>
+
+        <tr>
+          <th class="wk">3</th>
+          <td class="check"></td><td class="check"></td><td class="check"></td><td class="check"></td>
+          <td class="check"></td><td class="check"></td><td class="check"></td>
+        </tr>
+        <tr>
+          <th class="wk">Focus</th>
+          <td class="notes" colspan="7">Week 3 notes (top sets week):</td>
+        </tr>
+
+        <tr>
+          <th class="wk">4</th>
+          <td class="check"></td><td class="check"></td><td class="check"></td><td class="check"></td>
+          <td class="check"></td><td class="check"></td><td class="check"></td>
+        </tr>
+        <tr>
+          <th class="wk">Focus</th>
+          <td class="notes" colspan="7">Week 4 notes (deload):</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legend">
+      <div>
+        <span class="kbd">✓</span> trained &nbsp;
+        <span class="kbd">W</span> walk / treadmill &nbsp;
+        <span class="kbd">R</span> rest &nbsp;
+        <span class="kbd">X</span> missed (reason): ____________________
+      </div>
+      <div>
+        Suggested split (editable): <strong>D1 Lower</strong>, <strong>D2 Upper</strong>, <strong>rest</strong>, <strong>D4 Lower</strong>, <strong>D5 Upper</strong>, <strong>D6 Full + cardio</strong>, <strong>rest</strong>
+      </div>
+    </div>
+
+    <div class="split">
+      <strong>Week intent reminders</strong><br />
+      Week 1: baseline loads, clean reps.<br />
+      Week 2: mostly +reps before +load.<br />
+      Week 3: one top set per session on a main lift (rotate).<br />
+      Week 4: deload (lighter, fewer sets, snappy bar speed).
+    </div>
+
+    <div class="footer">Personal use · Mesocycle calendar</div>
+  </section>
+</body>
+</html>

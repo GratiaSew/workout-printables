@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Session Log (Printable)</title>
+  <style>
+    :root {
+      --ink: #111;
+      --line: #bdbdbd;
+      --muted: #666;
+      --paper: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #e9e9e9;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 11px;
+    }
+    .toolbar {
+      padding: 12px 16px;
+      background: #222;
+      color: #eee;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      background: #f5f5f5;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .toolbar span { opacity: 0.85; font-size: 12px; }
+
+    @page { size: A4; margin: 12mm; }
+
+    @media print {
+      body { background: var(--paper); }
+      .toolbar { display: none !important; }
+      .sheet {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 8mm 10mm !important;
+      }
+    }
+
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 12px auto 18px;
+      background: var(--paper);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      padding: 10mm 12mm 12mm;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 14px;
+      margin-bottom: 8px;
+    }
+    .field {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding: 4px 2px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    .label {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .line { flex: 1; min-height: 14px; }
+
+    table.grid {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 0 8px;
+    }
+    table.grid th,
+    table.grid td {
+      border: 1px solid var(--line);
+      padding: 2px 4px;
+      vertical-align: middle;
+    }
+    table.grid th {
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      background: #fafafa;
+    }
+    .ex { width: 30%; }
+    .set { width: 11.666%; }
+    .sub {
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: center;
+      background: #fcfcfc;
+    }
+    .cell { height: 14px; }
+
+    .cardio-title {
+      margin: 6px 0 2px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .footer {
+      margin-top: 6px;
+      font-size: 8px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .divider {
+      border: 0;
+      border-top: 1px dashed #cfcfcf;
+      margin: 10mm 0;
+    }
+
+    .hole-hint {
+      float: right;
+      font-size: 8px;
+      color: #999;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: -2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <span>Tip: print A4/Letter, disable browser headers/footers. If a half-page spills, set print scale to <strong>95%</strong>.</span>
+  </div>
+
+  <!-- SESSION A -->
+  <section class="sheet" aria-label="Workout log page 1">
+    <div class="hole-hint">Binder margin</div>
+    <h1>Workout tracker</h1>
+    <div class="meta">
+      <div class="field"><span class="label">Date</span><span class="line"></span></div>
+      <div class="field"><span class="label">Total time</span><span class="line"></span></div>
+      <div class="field full"><span class="label">Training focus</span><span class="line"></span></div>
+    </div>
+
+    <table class="grid" aria-label="Strength training">
+      <thead>
+        <tr>
+          <th class="ex">Exercise</th>
+          <th class="set">Set 1</th>
+          <th class="set">Set 2</th>
+          <th class="set">Set 3</th>
+          <th class="set">Set 4</th>
+          <th class="set">Set 5</th>
+          <th class="set">Set 6</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="sub" colspan="7">Wt (kg) / lbs</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="cardio-title">Cardio</div>
+    <table class="grid" aria-label="Cardio">
+      <thead>
+        <tr>
+          <th class="ex">Mode</th>
+          <th class="set">Distance</th>
+          <th class="set">Time</th>
+          <th class="set">Pace</th>
+          <th class="set">HR</th>
+          <th class="set">Incline</th>
+          <th class="set">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer">Personal use · Session log</div>
+
+    <hr class="divider" />
+
+    <!-- SESSION B (second log on same page) -->
+    <h1>Workout tracker</h1>
+    <div class="meta">
+      <div class="field"><span class="label">Date</span><span class="line"></span></div>
+      <div class="field"><span class="label">Total time</span><span class="line"></span></div>
+      <div class="field full"><span class="label">Training focus</span><span class="line"></span></div>
+    </div>
+
+    <table class="grid" aria-label="Strength training B">
+      <thead>
+        <tr>
+          <th class="ex">Exercise</th>
+          <th class="set">Set 1</th>
+          <th class="set">Set 2</th>
+          <th class="set">Set 3</th>
+          <th class="set">Set 4</th>
+          <th class="set">Set 5</th>
+          <th class="set">Set 6</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+
+        <tr><td class="sub" colspan="7">Wt</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="sub" colspan="7">Rep</td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="cardio-title">Cardio</div>
+    <table class="grid" aria-label="Cardio B">
+      <thead>
+        <tr>
+          <th class="ex">Mode</th>
+          <th class="set">Distance</th>
+          <th class="set">Time</th>
+          <th class="set">Pace</th>
+          <th class="set">HR</th>
+          <th class="set">Incline</th>
+          <th class="set">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer">Personal use · Session log</div>
+  </section>
+
+  <!-- Optional second page: extra rows version -->
+  <section class="sheet" aria-label="Workout log page 2">
+    <div class="hole-hint">Binder margin</div>
+    <h1>Workout tracker (expanded)</h1>
+    <div class="meta">
+      <div class="field"><span class="label">Date</span><span class="line"></span></div>
+      <div class="field"><span class="label">Total time</span><span class="line"></span></div>
+      <div class="field full"><span class="label">Training focus</span><span class="line"></span></div>
+    </div>
+
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="ex">Exercise</th>
+          <th class="set">Set 1</th>
+          <th class="set">Set 2</th>
+          <th class="set">Set 3</th>
+          <th class="set">Set 4</th>
+          <th class="set">Set 5</th>
+          <th class="set">Set 6</th>
+        </tr>
+      </thead>
+      <tbody id="expanded-rows"></tbody>
+    </table>
+
+    <div class="cardio-title">Cardio</div>
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="ex">Mode</th>
+          <th class="set">Distance</th>
+          <th class="set">Time</th>
+          <th class="set">Pace</th>
+          <th class="set">HR</th>
+          <th class="set">Incline</th>
+          <th class="set">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+        <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer">Extra rows for long sessions (12 lifts) · Session log</div>
+  </section>
+
+  <script>
+    const tbody = document.getElementById("expanded-rows");
+    const blocks = 12;
+    for (let i = 0; i < blocks; i++) {
+      tbody.insertAdjacentHTML(
+        "beforeend",
+        `<tr><td class="sub" colspan="7">Wt</td></tr>
+         <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>
+         <tr><td class="sub" colspan="7">Rep</td></tr>
+         <tr><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td></tr>`
+      );
+    }
+  </script>
+</body>
+</html>

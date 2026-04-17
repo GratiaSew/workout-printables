@@ -1,0 +1,5 @@
+.DS_Store
+Thumbs.db
+*.log
+git-init-out.txt
+.cursor-push-debug.txt

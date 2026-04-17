@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Main Lift Progression (Printable)</title>
+  <style>
+    :root { --ink: #111; --line: #bdbdbd; --muted: #666; --paper: #fff; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #e9e9e9;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 10px;
+    }
+    .toolbar {
+      padding: 12px 16px;
+      background: #222;
+      color: #eee;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      background: #f5f5f5;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    @page { size: A4 landscape; margin: 10mm; }
+    @media print {
+      body { background: var(--paper); }
+      .toolbar { display: none !important; }
+      .sheet { box-shadow: none !important; margin: 0 !important; width: 297mm !important; min-height: 210mm !important; }
+    }
+    .sheet {
+      width: 297mm;
+      min-height: 210mm;
+      margin: 12px auto 18px;
+      background: var(--paper);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      padding: 8mm 10mm 10mm;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .sub {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 9.5px;
+      line-height: 1.35;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 0 8px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+    th {
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: #fafafa;
+    }
+    .lift { width: 16%; font-weight: 800; color: #222; font-size: 10px; }
+    .small { width: 7%; text-align: center; }
+    .cell { height: 26px; }
+    .bigcell { height: 40px; }
+    .footer { margin-top: 6px; font-size: 8px; color: var(--muted); text-align: right; }
+    .hint {
+      margin-top: 6px;
+      font-size: 9px;
+      color: #333;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <span>Landscape recommended. Log your best “top set” or heaviest working sets each week.</span>
+  </div>
+
+  <section class="sheet">
+    <h1>Main lift progression (4 weeks)</h1>
+    <p class="sub">
+      Bar includes your <strong>1.5 kg</strong> bar. Write <strong>total kg</strong> (bar + plates) or dumbbell per-hand load—pick one style and keep it consistent.
+    </p>
+
+    <table aria-label="Weekly bests">
+      <thead>
+        <tr>
+          <th class="lift">Lift</th>
+          <th class="small">W1<br/>kg</th>
+          <th class="small">W1<br/>reps</th>
+          <th class="small">W2<br/>kg</th>
+          <th class="small">W2<br/>reps</th>
+          <th class="small">W3<br/>kg</th>
+          <th class="small">W3<br/>reps</th>
+          <th class="small">W4<br/>kg</th>
+          <th class="small">W4<br/>reps</th>
+          <th>Notes (tempo, ROM, pain-free?)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="lift">Hip thrust (barbell)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Back squat (barbell)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Bench press (flat)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Barbell row</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">RDL (barbell or DB)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Overhead press (bar or DB)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Bulgarian split squat (DB)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+        <tr>
+          <td class="lift">Farmer carry (total handheld)</td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="cell"></td><td class="cell"></td><td class="cell"></td><td class="cell"></td>
+          <td class="bigcell"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hint">
+      <strong>Simple rule:</strong> when you hit the top of your target rep range on all working sets, add the smallest load jump you can and return to the bottom of the range.
+      Week 4 should look like a <strong>lighter deload</strong> even if reps look “higher” on paper.
+    </div>
+
+    <div class="footer">Personal use · Progression tracker</div>
+  </section>
+</body>
+</html>

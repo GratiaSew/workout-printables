@@ -1,0 +1,40 @@
+================================================================================
+  PUSH THIS FOLDER TO GITHUB (copy everything inside the box below)
+================================================================================
+
+1) Open PowerShell (Windows key, type PowerShell, Enter).
+
+2) Paste this WHOLE block, then press Enter once. Wait until it finishes.
+
+--------------------------------------------------------------------------------
+Set-Location $HOME\workout-printables
+
+git add -A
+git commit -m "Initial commit: workout printable HTML trackers"
+git branch -M main
+
+git remote remove origin 2>$null
+git remote add origin https://github.com/GratiaSew/workout-printables.git
+
+git push -u origin main
+--------------------------------------------------------------------------------
+
+3) If "commit" says "nothing to commit", that is OK — your files are already
+   committed. Run only these two lines next:
+
+      git remote remove origin 2>$null
+      git remote add origin https://github.com/GratiaSew/workout-printables.git
+      git push -u origin main
+
+4) If "push" asks you to log in, sign in to GitHub in the browser window
+   (or use SSH instead of HTTPS — different URL).
+
+5) Open https://github.com/GratiaSew/workout-printables in the browser — you
+   should see your HTML files.
+
+================================================================================
+  Why the Cursor agent could not do it for you
+================================================================================
+
+The agent's terminal does not run on your machine the same way yours does, and
+it cannot use your saved GitHub login. You must run the commands above locally.
