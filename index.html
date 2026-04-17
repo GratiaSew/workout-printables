@@ -885,10 +885,20 @@
         });
         document.getElementById("signOutBtn").addEventListener("click", async () => {
           if (!window.AuthService || !window.AuthService.signOut) return;
+          const btn = document.getElementById("signOutBtn");
+          const keep = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = "Signing out...";
           try {
             await window.AuthService.signOut();
+            await applySession(null);
+            updateAuthUi();
           } catch (err) {
             console.error(err);
+            alert("Sign-out failed. Please refresh and try again.");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = keep;
           }
         });
         document.getElementById("addExerciseForm").addEventListener("submit", function (e) {

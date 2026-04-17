@@ -36,7 +36,8 @@
   async function signOut() {
     const c = ensureClient();
     if (!c) return;
-    await c.auth.signOut();
+    const res = await c.auth.signOut({ scope: "local" });
+    if (res && res.error) throw res.error;
   }
 
   function onAuthStateChange(cb) {
