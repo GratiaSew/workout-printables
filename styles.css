@@ -61,6 +61,13 @@ body { margin: 0; font-family: var(--font); background: radial-gradient(circle a
 .btn.secondary { background:linear-gradient(135deg,var(--sand),var(--taupe)); color:var(--charcoal); border:1px solid var(--border-strong); }
 .btn.ghost { background:var(--offwhite); color:var(--charcoal); border:1px solid var(--border-strong); }
 .btn.danger { background:#f3d7d7; color:var(--danger); border:1px solid #ddb2b2; }
+.btn.day-summary-log-done {
+  background: linear-gradient(135deg, rgba(45, 90, 62, 0.16), rgba(52, 115, 72, 0.28));
+  color: #1a3322;
+  border: 1px solid rgba(45, 90, 62, 0.42);
+  box-shadow: 0 4px 12px rgba(45, 90, 62, 0.12);
+}
+.btn.day-summary-log-done:hover { filter: brightness(1.05); }
 .btn.small { padding:7px 10px; font-size:.84rem; }
 .btn:hover { filter: brightness(1.04); }
 
@@ -79,9 +86,30 @@ body { margin: 0; font-family: var(--font); background: radial-gradient(circle a
 .day-btn.done { background:rgba(163,148,130,.28); border-color:var(--taupe); font-weight:700; }
 .day-btn.today { outline:2px solid rgba(51,64,71,.25); }
 .day-btn.empty { visibility:hidden; pointer-events:none; }
-.calendar-header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
-.calendar-header h4 { margin:0; font-size:1rem; }
-.calendar-header .btn { padding:6px 9px; }
+.calendar-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+.calendar-header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.calendar-heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  min-width: 0;
+}
+.calendar-header .calendar-heading {
+  text-align: right;
+}
 
 .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
 .section-title h2 { margin:0; font-size:1.2rem; }
@@ -217,7 +245,23 @@ select.multi { min-height:120px; }
   }
   input, select, textarea { font-size: 16px; }
   .exercise-item { flex-direction: column; align-items: stretch; }
-  .calendar-header h4 { flex: 1 1 100%; text-align: center; order: -1; }
+  .calendar-header {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .calendar-heading {
+    text-align: center;
+    font-size: 1rem;
+  }
+  .calendar-header .calendar-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .calendar-header-nav {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: center;
+  }
   .p-actions { flex-direction: column; }
   .p-actions .btn { width: 100%; justify-content: center; }
   .bar-item { grid-template-columns: 1fr auto; row-gap: 6px; }

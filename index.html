@@ -204,6 +204,13 @@
     .btn.secondary { background:linear-gradient(135deg,var(--sand),var(--taupe)); color:var(--charcoal); border:1px solid var(--border-strong); }
     .btn.ghost { background:var(--offwhite); color:var(--charcoal); border:1px solid var(--border-strong); }
     .btn.danger { background:#f3d7d7; color:var(--danger); border:1px solid #ddb2b2; }
+    .btn.day-summary-log-done {
+      background: linear-gradient(135deg, rgba(45, 90, 62, 0.16), rgba(52, 115, 72, 0.28));
+      color: #1a3322;
+      border: 1px solid rgba(45, 90, 62, 0.42);
+      box-shadow: 0 4px 12px rgba(45, 90, 62, 0.12);
+    }
+    .btn.day-summary-log-done:hover { filter: brightness(1.05); }
     .btn.small { padding:7px 10px; font-size:.84rem; }
     .btn:hover { filter: brightness(1.03); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(51, 64, 71, 0.14); }
 
@@ -271,9 +278,30 @@
     }
     .day-btn.empty { visibility:hidden; pointer-events:none; }
     .day-btn:not(.empty):hover { transform: translateY(-1px) scale(1.02); }
-    .calendar-header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
-    .calendar-header h4 { margin:0; font-size:1rem; }
-    .calendar-header .btn { padding:6px 9px; }
+    .calendar-header {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 10px 14px;
+      margin-bottom: 10px;
+      min-width: 0;
+    }
+    .calendar-header-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+    }
+    .calendar-heading {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      min-width: 0;
+    }
+    .calendar-header .calendar-heading {
+      text-align: right;
+    }
 
     .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
     .section-title h2 { margin:0; font-size:1.2rem; }
@@ -729,8 +757,23 @@
       }
       .exercise-item .actions { justify-content: flex-end; flex-wrap: wrap; }
       .exercise-list-toolbar .pill-input { min-width: 0; width: 100%; }
-      .calendar-header { flex-wrap: wrap; justify-content: center; gap: 8px; }
-      .calendar-header h4 { flex: 1 1 100%; text-align: center; order: -1; margin-bottom: 2px; }
+      .calendar-header {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .calendar-heading {
+        text-align: center;
+        font-size: 1rem;
+      }
+      .calendar-header .calendar-heading {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .calendar-header-nav {
+        grid-column: 1;
+        grid-row: 2;
+        justify-content: center;
+      }
       .calendar-strip { gap: 3px; }
       .calendar-strip .calendar-dow { font-size: 0.58rem; padding: 1px 0; }
       .day-btn {
@@ -907,7 +950,7 @@
           </article>
           <article class="premium-box">
             <h3 style="margin:0">Progress pulse</h3>
-            <p class="muted" style="margin:6px 0 0">Your logged sessions this month vs activity target.</p>
+            <p class="muted" style="margin:6px 0 0">Your recorded sessions this month vs activity target.</p>
             <div class="radial-wrap">
               <div class="radial-shell" id="radialShell" style="--deg:120deg">
                 <div class="radial-label"><strong id="radialValue">33%</strong><span>target hit</span></div>
@@ -931,24 +974,28 @@
         <div class="plan-grid" id="schedulePanels" aria-live="polite"></div>
         <div class="stats-grid">
           <article class="stat-box"><span>Total exercises</span><strong id="statExercises">0</strong></article>
-          <article class="stat-box"><span>Total workout logs</span><strong id="statLogs">0</strong></article>
+          <article class="stat-box"><span>Total workout entries</span><strong id="statLogs">0</strong></article>
           <article class="stat-box"><span>Days worked this month</span><strong id="statDaysMonth">0</strong></article>
-          <article class="stat-box"><span>Best logged load (kg)</span><strong id="statBestLoad">0</strong></article>
+          <article class="stat-box"><span>Best recorded load (kg)</span><strong id="statBestLoad">0</strong></article>
         </div>
         <div class="grid">
           <article class="card">
             <div class="section-title"><h3>Monthly check-in</h3><button class="btn secondary small" id="openCalendarTab" type="button">Open full calendar</button></div>
-            <p class="muted">Tap a day to mark/unmark workout completion. This month view is interactive.</p>
+            <p class="muted">Same month and controls as the Calendar tab. Tap any day to open your rotation for that date, add sets, review what you saved, and mark or clear the calendar checkmark.</p>
             <div class="calendar-header">
-              <button class="btn ghost small" id="miniPrev" type="button">Prev</button>
-              <h4 id="miniTitle"></h4>
-              <button class="btn ghost small" id="miniNext" type="button">Next</button>
+              <div class="calendar-header-nav">
+                <button class="btn ghost small" id="miniPrev" type="button">Prev month</button>
+                <button class="btn ghost small" id="miniToday" type="button">Today</button>
+                <button class="btn ghost small" id="miniNext" type="button">Next month</button>
+              </div>
+              <h3 id="miniTitle" class="calendar-heading"></h3>
             </div>
             <div class="calendar-strip" id="miniCalendar"></div>
+            <p class="hint">Past months stay on this device (or your cloud account when signed in).</p>
           </article>
           <article class="card">
             <h3>Progress focus</h3>
-            <p class="muted">Use <strong>My Workouts</strong> to add exercises, log sets/reps/weight, and track stats. Downloads in the Printables tab pull from that data at the moment you click download.</p>
+            <p class="muted">Use <strong>My Workouts</strong> to add exercises, record sets/reps/weight, and track stats. Downloads in the Printables tab pull from that data at the moment you click download.</p>
             <div class="chip-list progress-focus-chip-row" style="margin-top:10px">
               <button type="button" class="chip progress-focus-chip" data-progress-topic="0">Load progression</button>
               <button type="button" class="chip progress-focus-chip" data-progress-topic="1">Weekly consistency</button>
@@ -968,14 +1015,14 @@
                   <div class="progress-focus-slide" id="progressSlide1" role="tabpanel" aria-labelledby="progressFocusTab1">
                     <div class="progress-focus-slide-head">
                       <strong id="progressFocusTab1">Weekly consistency</strong>
-                      <span class="muted" style="font-size:.76rem">Days with logs or calendar mark ÷ 7</span>
+                      <span class="muted" style="font-size:.76rem">Days with saves or calendar mark ÷ 7</span>
                     </div>
                     <div id="progressChartConsistency" class="progress-focus-chart-host"></div>
                   </div>
                   <div class="progress-focus-slide" id="progressSlide2" role="tabpanel" aria-labelledby="progressFocusTab2">
                     <div class="progress-focus-slide-head">
                       <strong id="progressFocusTab2">Exercise stats</strong>
-                      <span class="muted" style="font-size:.76rem">Top lifts by logged volume</span>
+                      <span class="muted" style="font-size:.76rem">Top lifts by recorded volume</span>
                     </div>
                     <div id="progressChartExercises" class="progress-focus-chart-host"></div>
                   </div>
@@ -1001,7 +1048,7 @@
 
       <section id="view-my-workouts" class="view" hidden>
         <div class="section-title"><h2>My Workouts</h2><button class="btn primary" type="button" id="openPrintablesFromWorkouts">Go to printables</button></div>
-        <p class="muted" style="margin-top:-6px;margin-bottom:12px">These are the exercises you can log against. Add more from the <strong>Program</strong> tab exercise library, or create your own.</p>
+        <p class="muted" style="margin-top:-6px;margin-bottom:12px">These are the exercises you track here. Add more from the <strong>Program</strong> tab exercise library, or create your own.</p>
         <div class="workout-grid">
           <article class="card">
             <h3>Add exercise to program</h3>
@@ -1018,7 +1065,7 @@
                 <span class="exercise-list-count" id="exerciseListCount"></span>
               </div>
               <div class="exercise-list-toolbar">
-                <input class="pill-input" id="exerciseListFilter" type="search" placeholder="Filter by any value (name, category, targets, log dates, weight, notes…)" autocomplete="off" aria-label="Filter exercises in your list" />
+                <input class="pill-input" id="exerciseListFilter" type="search" placeholder="Filter by any value (name, category, targets, session dates, weight, notes…)" autocomplete="off" aria-label="Filter exercises in your list" />
               </div>
               <div class="exercise-list-scroll" id="exerciseListScroll" aria-label="Scrollable exercise list">
                 <div class="exercise-list" id="exerciseList" role="list"></div>
@@ -1029,12 +1076,12 @@
             <h3>Program statistics</h3>
             <table class="table" aria-label="Program stats"><tbody>
               <tr><th>Total exercises</th><td id="progTotalExercises">0</td></tr>
-              <tr><th>Total logs</th><td id="progTotalLogs">0</td></tr>
+              <tr><th>Total entries</th><td id="progTotalLogs">0</td></tr>
               <tr><th>Total estimated volume</th><td id="progTotalVolume">0 kg</td></tr>
               <tr><th>Most trained exercise</th><td id="progMostTrained">-</td></tr>
               <tr><th>Last workout date</th><td id="progLastDate">-</td></tr>
             </tbody></table>
-            <p class="hint">Open an exercise progress window (modal) to add logs and see exercise-specific best load, best reps, and trend history.</p>
+            <p class="hint">Open an exercise progress window (modal) to add sessions and see exercise-specific best load, best reps, and trend history.</p>
             <div style="margin-top:10px">
               <label for="techExerciseSelect" class="muted" style="display:block;margin-bottom:6px">Exercise technique panel</label>
               <select id="techExerciseSelect"></select>
@@ -1071,7 +1118,7 @@
 
           <article class="card">
             <h3>Exercise library</h3>
-            <p class="muted">Pick exercises to add to <strong>My Workouts</strong> so you can log progress for every lift in your program.</p>
+            <p class="muted">Pick exercises to add to <strong>My Workouts</strong> so you can track progress for every lift in your program.</p>
             <div class="lib-toolbar">
               <input class="pill-input" id="libFilter" placeholder="Filter library..." style="min-width:180px;flex:1" />
               <button class="btn secondary small" type="button" id="btnAddAllFiltered">Add all visible</button>
@@ -1091,9 +1138,9 @@
               <button class="btn ghost small" id="fullNext" type="button">Next month</button>
             </div>
           </div>
-          <h3 id="fullTitle" style="margin-top:4px"></h3>
+          <h3 id="fullTitle" class="calendar-heading" style="margin-top:4px"></h3>
           <div class="calendar-strip" id="fullCalendar" style="margin-top:10px"></div>
-          <p class="hint">Tap any day to open your rotation for that date, log sets like on the dashboard, review what you already logged, and mark or clear the calendar checkmark. Past months stay in your browser.</p>
+          <p class="hint">Tap any day to open your rotation for that date, add sets from here or the dashboard, review what you already saved, and mark or clear the calendar checkmark. Past months stay in your browser.</p>
         </article>
       </section>
 
@@ -1101,20 +1148,20 @@
         <div class="section-title"><h2>Printables</h2><input class="pill-input" id="printableFilter" placeholder="Search printables..." /></div>
         <div class="hint" style="border-radius:16px;padding:12px 14px;margin:10px 0 14px;line-height:1.45">
           <strong style="display:block;margin-bottom:4px;color:var(--charcoal)">Download with your data</strong>
-          Each file is built at click time from this device (or your cloud account when signed in): exercises, logs, rotation labels, calendar marks, and program stats.
+          Each file is built at click time from this device (or your cloud account when signed in): exercises, workout history, rotation labels, calendar marks, and program stats.
         </div>
         <p class="muted" style="margin-top:-2px; margin-bottom:12px;">Open any sheet to print instantly, or use Download to generate a personalized copy with your current workout data.</p>
         <div class="p-grid" id="printGrid">
-          <article class="p-card" data-keywords="session log sets reps weight printable">
-            <h4>Session log</h4><p>Pre-fills from <strong>today’s rotation</strong> plus your library, then your <strong>most recent log</strong> per exercise (weight × reps across logged sets). Page 2 fills extra rows for long sessions.</p>
+          <article class="p-card" data-keywords="session sheet sets reps weight printable">
+            <h4>Session sheet</h4><p>Pre-fills from <strong>today’s rotation</strong> plus your library, then your <strong>most recent session</strong> per exercise (weight × reps across recorded sets). Page 2 fills extra rows for long sessions.</p>
             <div class="p-actions"><a class="btn primary small" href="session-log.html" target="_blank" rel="noopener">Open</a><button class="btn secondary small dl-btn" type="button" data-file="session-log.html">Download personalized</button></div>
           </article>
           <article class="p-card" data-keywords="calendar mesocycle checklist days month weekly">
-            <h4>4-week mesocycle calendar</h4><p>Maps the <strong>last four Monday–Sunday weeks</strong> (ending this week). A day shows ✓ if you <strong>marked it on the calendar</strong> or <strong>logged any lift</strong> that day.</p>
+            <h4>4-week mesocycle calendar</h4><p>Maps the <strong>last four Monday–Sunday weeks</strong> (ending this week). A day shows ✓ if you <strong>marked it on the calendar</strong> or <strong>recorded any lift</strong> that day.</p>
             <div class="p-actions"><a class="btn primary small" href="mesocycle-calendar.html" target="_blank" rel="noopener">Open</a><button class="btn secondary small dl-btn" type="button" data-file="mesocycle-calendar.html">Download personalized</button></div>
           </article>
           <article class="p-card" data-keywords="progression main lift weekly best load reps">
-            <h4>Main lift progression</h4><p>Fills each week with your <strong>best log by training volume</strong> (kg × reps × sets) for matching lifts, then appends your other logged exercises.</p>
+            <h4>Main lift progression</h4><p>Fills each week with your <strong>best session by training volume</strong> (kg × reps × sets) for matching lifts, then appends your other recorded exercises.</p>
             <div class="p-actions"><a class="btn primary small" href="main-lift-progression.html" target="_blank" rel="noopener">Open</a><button class="btn secondary small dl-btn" type="button" data-file="main-lift-progression.html">Download personalized</button></div>
           </article>
         </div>
@@ -1157,9 +1204,9 @@
       </div>
       <p class="muted" id="daySummaryPlanIntro" style="font-size:.88rem;margin:8px 0 6px;line-height:1.45"></p>
       <div id="daySummaryPlanHost"></div>
-      <p class="muted" id="daySummaryLogsLabel" style="font-size:.88rem;margin:14px 0 6px;font-weight:600;display:none">Logged this day</p>
+      <p class="muted" id="daySummaryLogsLabel" style="font-size:.88rem;margin:14px 0 6px;font-weight:600;display:none">Recorded this day</p>
       <div id="daySummaryBody" class="day-summary-body"></div>
-      <p class="muted" id="daySummaryActionsHint" style="font-size:.82rem;margin:12px 0 0;line-height:1.45">Unmark only removes the checkmark. Clear deletes every exercise log on this date (and the checkmark), or only removes the checkmark if there are no logs yet.</p>
+      <p class="muted" id="daySummaryActionsHint" style="font-size:.82rem;margin:12px 0 0;line-height:1.45">Unmark only removes the checkmark. Clear removes every saved workout for this date (and the checkmark), or only removes the checkmark if nothing is saved yet.</p>
       <div class="sheet-actions day-summary-actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
         <button type="button" class="btn secondary" id="daySummaryToggleMarkBtn">Mark day on calendar</button>
         <button type="button" class="btn danger" id="daySummaryClearDayBtn">Clear this day</button>
@@ -1171,7 +1218,7 @@
     <div class="log-shell">
       <div class="modal-head"><h3 id="logTitle">Exercise progress</h3><button class="btn ghost small" id="closeLogModal" type="button">Close</button></div>
       <div class="inline-stats">
-        <div class="box">Logs<strong id="exStatLogs">0</strong></div>
+        <div class="box">Entries<strong id="exStatLogs">0</strong></div>
         <div class="box">Best load<strong id="exStatLoad">0 kg</strong></div>
         <div class="box">Best reps<strong id="exStatReps">0</strong></div>
       </div>
@@ -1182,11 +1229,11 @@
         <div><label for="logSets">Sets</label><input id="logSets" type="number" min="1" max="12" value="4" required /></div>
         <div style="grid-column:1 / -1"><label for="logNotes">Notes (optional)</label><textarea id="logNotes" placeholder="Technique, tempo, RPE, etc."></textarea></div>
         <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn primary" type="submit">Add progress log</button>
+          <button class="btn primary" type="submit">Save session</button>
           <button class="btn ghost" type="button" id="markDateOnly">Mark date as workout day only</button>
         </div>
       </form>
-      <table class="table" id="logTable" aria-label="Exercise progress entries">
+      <table class="table" id="logTable" aria-label="Exercise progress history">
         <thead><tr><th>Date</th><th>Weight</th><th>Reps</th><th>Sets</th><th>Volume</th><th>Action</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -1580,14 +1627,15 @@
         const sub = plan.type === "rest" ? "Rest day in your rotation" : escapeHtml(plan.label);
         let body = "";
         if (opts.variant === "clear") {
-          body = "<p class='muted' style='margin:0;font-size:0.88rem'>No past workout day in your template is both unlogged on the calendar and still pending. If you skip a session, it will show here until you complete it or mark the day.</p>";
+          body = "<p class='muted' style='margin:0;font-size:0.88rem'>No past workout day in your template is both without a save on the calendar and still pending. If you skip a session, it will show here until you complete it or mark the day.</p>";
         } else if (plan.type === "rest" || !plan.exercises.length) {
           body = "<p class='muted' style='margin:0;font-size:0.88rem'>No lifts scheduled — recovery or add exercises in the Program tab.</p>";
         } else {
           body = "<ul class='plan-list'>" + plan.exercises.map((ex) => "<li>" + escapeHtml(ex.name) + " <span class='muted'>(" + ex.targetSets + "×" + ex.targetReps + ")</span></li>").join("") + "</ul>";
           body += "<div class='plan-actions'>";
           plan.exercises.forEach((ex) => {
-            body += "<button class='btn secondary small' type='button' data-log='" + escapeHtml(ex.id) + "'>Log " + escapeHtml(ex.name) + "</button>";
+            const logged = exerciseHasLogOnDate(ex.id, dateStr);
+            body += "<button class='btn small " + (logged ? "day-summary-log-done" : "secondary") + "' type='button' data-log='" + escapeHtml(ex.id) + "'" + (logged ? " title='Already saved this day — tap to add or review'" : "") + ">" + escapeHtml(ex.name) + "</button>";
           });
           body += "<button class='btn ghost small' type='button' data-tab-workouts>My Workouts</button></div>";
         }
@@ -1962,7 +2010,7 @@
         if (!n) return "<p class=\"muted progress-focus-empty\">No data in this window yet.</p>";
         const rawMax = Math.max.apply(null, values);
         if (meta.emptyIfAllZero && rawMax < 0.0001) {
-          return "<p class=\"muted progress-focus-empty\">No logged volume in the last " + n + " weeks. Log sets in <strong>My Workouts</strong> to see this trend.</p>";
+          return "<p class=\"muted progress-focus-empty\">No recorded volume in the last " + n + " weeks. Add sets in <strong>My Workouts</strong> to see this trend.</p>";
         }
         const maxV = meta.percentMode ? 100 : Math.max(1, rawMax);
         let rects = "";
@@ -1987,7 +2035,7 @@
         return "<svg class=\"progress-focus-svg\" viewBox=\"0 0 " + W + " " + H + "\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\">" + hint + rects + texts + maxLine + "</svg>";
       }
       function progressSvgTopExercises(items) {
-        if (!items.length) return "<p class=\"muted progress-focus-empty\">No exercise logs yet.</p>";
+        if (!items.length) return "<p class=\"muted progress-focus-empty\">No exercise sessions yet.</p>";
         const maxV = Math.max.apply(null, items.map((it) => it.vol)) || 1;
         const W = 360;
         const rowH = 28;
@@ -2016,9 +2064,9 @@
         const pct = exercises.length ? Math.round((nLogged / exercises.length) * 100) : 0;
         const totalLogs = logs.length;
         return "<div class=\"progress-printables-summary\">"
-          + "<p class=\"progress-printables-pct\"><strong>" + pct + "%</strong> <span class=\"muted\">of your exercises have at least one log</span></p>"
+          + "<p class=\"progress-printables-pct\"><strong>" + pct + "%</strong> <span class=\"muted\">of your exercises have at least one saved session</span></p>"
           + "<div class=\"progress-printables-bar-track\" aria-hidden=\"true\"><div class=\"progress-printables-bar-fill\" style=\"width:" + pct + "%\"></div></div>"
-          + "<p class=\"muted\" style=\"margin:12px 0 0;font-size:.8rem;line-height:1.45\">You have <strong>" + totalLogs + "</strong> total logs. Printables merge this live data when you tap download — richer logs yield more useful sheets.</p>"
+          + "<p class=\"muted\" style=\"margin:12px 0 0;font-size:.8rem;line-height:1.45\">You have <strong>" + totalLogs + "</strong> total sessions. Printables merge this live data when you tap download — more history yields more useful sheets.</p>"
           + "</div>";
       }
       function setProgressFocusSlide(i) {
@@ -2204,7 +2252,7 @@
           applyCoachWeeklySplit();
         });
         document.getElementById("btnResetSchedule").addEventListener("click", () => {
-          if (!confirm("Reset the whole schedule template to your 7-day split? Your workout logs stay safe.")) return;
+          if (!confirm("Reset the whole schedule template to your 7-day split? Your workout history stays safe.")) return;
           delete state.data.schedule;
           ensureDefaultSchedule();
           syncWholeScheduleIds();
@@ -2232,8 +2280,9 @@
             renderAll();
           }
         });
-        document.getElementById("miniPrev").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, -1); renderMiniCalendar(); });
-        document.getElementById("miniNext").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, 1); renderMiniCalendar(); });
+        document.getElementById("miniPrev").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, -1); renderMiniCalendar(); renderFullCalendar(); });
+        document.getElementById("miniToday").addEventListener("click", () => { state.calendarMonth = startOfMonth(new Date()); renderMiniCalendar(); renderFullCalendar(); });
+        document.getElementById("miniNext").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, 1); renderMiniCalendar(); renderFullCalendar(); });
         document.getElementById("fullPrev").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, -1); renderMiniCalendar(); renderFullCalendar(); });
         document.getElementById("fullNext").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, 1); renderMiniCalendar(); renderFullCalendar(); });
         document.getElementById("fullToday").addEventListener("click", () => { state.calendarMonth = startOfMonth(new Date()); renderMiniCalendar(); renderFullCalendar(); });
@@ -2473,16 +2522,10 @@
           btn.className = "day-btn";
           if (state.data.workoutDays[key]) btn.classList.add("done");
           if (key === today) btn.classList.add("today");
-          if (host && host.id === "fullCalendar" && getLogsForCalendarDay(key).length) btn.classList.add("has-logs");
+          if (getLogsForCalendarDay(key).length) btn.classList.add("has-logs");
           btn.innerHTML = "<small>" + shortWeekday(dt) + "</small>" + d;
           btn.addEventListener("click", () => {
-            const isFullCalendar = host && host.id === "fullCalendar";
-            if (isFullCalendar) {
-              openCalendarDayModal(key);
-              return;
-            }
-            if (state.data.workoutDays[key]) delete state.data.workoutDays[key]; else state.data.workoutDays[key] = true;
-            saveData(); renderAll();
+            openCalendarDayModal(key);
           });
           host.appendChild(btn);
         }
@@ -2538,7 +2581,7 @@
           const item = document.createElement("article");
           item.className = "exercise-item";
           item.setAttribute("role", "listitem");
-          item.innerHTML = "<div><strong>" + escapeHtml(ex.name) + "</strong><div class='meta'>" + escapeHtml(ex.category) + " - target " + ex.targetSets + "x" + ex.targetReps + " - logs: " + logs.length + " - best: " + round1(best) + " kg</div></div><div class='actions'><button class='btn ghost small' type='button' data-action='progress'>Progress</button><button class='btn secondary small' type='button' data-action='technique'>Technique</button><button class='btn danger small' type='button' data-action='remove'>Remove</button></div>";
+          item.innerHTML = "<div><strong>" + escapeHtml(ex.name) + "</strong><div class='meta'>" + escapeHtml(ex.category) + " - target " + ex.targetSets + "x" + ex.targetReps + " - sessions: " + logs.length + " - best: " + round1(best) + " kg</div></div><div class='actions'><button class='btn ghost small' type='button' data-action='progress'>Progress</button><button class='btn secondary small' type='button' data-action='technique'>Technique</button><button class='btn danger small' type='button' data-action='remove'>Remove</button></div>";
           item.querySelector("[data-action='progress']").addEventListener("click", () => openLogModal(ex.id));
           item.querySelector("[data-action='technique']").addEventListener("click", () => {
             state.selectedTechniqueExerciseId = ex.id;
@@ -2785,7 +2828,7 @@
         const info = doc.querySelector(".sub");
         if (info) {
           info.textContent = "Mesocycle window (Mon–Sun): " + isoDateLocal(start) + " → " + isoDateLocal(addDays(start, 27))
-            + " · ✓ = calendar mark or any logged lift that day · Bodyweight (optional): ____________ · Protein (g/day): ____________";
+            + " · ✓ = calendar mark or any recorded lift that day · Bodyweight (optional): ____________ · Protein (g/day): ____________";
         }
         const rows = Array.from(doc.querySelectorAll("table[aria-label='Weekly checklist'] tbody tr"));
         for (let w = 0; w < 4; w++) {
@@ -2802,7 +2845,7 @@
             if (done) doneCount++;
           }
           const noteCell = note.children[1];
-          if (noteCell) noteCell.textContent = "Week " + (w + 1) + " active days (mark or log): " + doneCount + " / 7";
+          if (noteCell) noteCell.textContent = "Week " + (w + 1) + " active days (mark or save): " + doneCount + " / 7";
         }
       }
       function logEntryVolume(l) {
@@ -2921,6 +2964,10 @@
         });
         return out;
       }
+      function exerciseHasLogOnDate(exerciseId, dateStr) {
+        if (!exerciseId || !dateStr) return false;
+        return getExerciseLogs(exerciseId).some((l) => l.date === dateStr);
+      }
       function clearAllDataForCalendarDay(dateStr) {
         if (!dateStr) return 0;
         delete state.data.workoutDays[dateStr];
@@ -2941,8 +2988,8 @@
         if (!rows.length && !marked) return false;
         const pretty = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(parseISOLocal(dateStr));
         const msg = rows.length
-          ? "Clear " + pretty + "?\n\nThis permanently deletes all " + rows.length + " exercise log(s) on this date and removes the calendar checkmark. Your other days are not affected. This cannot be undone."
-          : "Remove calendar mark for " + pretty + "?\n\nThis date has no exercise logs. Only the calendar checkmark will be removed.";
+          ? "Clear " + pretty + "?\n\nThis permanently deletes all " + rows.length + " saved workout(s) on this date and removes the calendar checkmark. Your other days are not affected. This cannot be undone."
+          : "Remove calendar mark for " + pretty + "?\n\nThis date has no saved workouts. Only the calendar checkmark will be removed.";
         if (!confirm(msg)) return false;
         clearAllDataForCalendarDay(dateStr);
         saveData();
@@ -2966,10 +3013,10 @@
         title.textContent = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(parseISOLocal(dateStr));
         markLine.textContent = state.data.workoutDays[dateStr]
           ? "This date is marked as a completed workout day on your calendar."
-          : "This date is not marked on your calendar yet (separate from your exercise logs).";
+          : "This date is not marked on your calendar yet (separate from your saved workouts).";
         planIntro.textContent = plan.type === "rest"
           ? "From your rotation: rest / recovery day."
-          : "From your rotation: " + String(plan.label || "Workout day") + ". Log lifts below (same as the dashboard).";
+          : "From your rotation: " + String(plan.label || "Workout day") + ". Add your sets below (same as the dashboard).";
         planHost.innerHTML = "";
         if (plan.type === "rest" || !plan.exercises.length) {
           const p = document.createElement("p");
@@ -2990,10 +3037,12 @@
           const act = document.createElement("div");
           act.className = "plan-actions";
           plan.exercises.forEach((ex) => {
+            const logged = exerciseHasLogOnDate(ex.id, dateStr);
             const b = document.createElement("button");
             b.type = "button";
-            b.className = "btn secondary small";
-            b.textContent = "Log " + ex.name;
+            b.className = logged ? "btn day-summary-log-done small" : "btn secondary small";
+            b.textContent = ex.name;
+            if (logged) b.title = "Already saved this day — tap to add or review";
             b.addEventListener("click", () => {
               if (dlg.open && typeof dlg.close === "function") dlg.close();
               openLogModal(ex.id, dateStr);
