@@ -124,6 +124,12 @@
     .sched-head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px; }
     .sched-head input[type="text"] { flex:1; min-width:140px; }
     select.multi { min-height:120px; }
+    .tech-panel { border:1px solid rgba(64,78,59,.12); border-radius:12px; padding:12px; background:#fff; margin-top:10px; }
+    .tech-panel h4 { margin:0 0 8px; }
+    .tech-panel ul { margin:0 0 8px; padding-left:1.1rem; }
+    .tech-panel li { margin:4px 0; }
+    .src-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .src-list a { font-size:0.82rem; }
 
     @media (max-width:1050px) { .stats-grid { grid-template-columns:repeat(2,minmax(120px,1fr)); } .grid, .workout-grid { grid-template-columns:1fr; } }
     @media (max-width:860px) { .app { flex-direction:column; } .sidebar { width:100%; min-height:unset; position:static; } .nav { flex-direction:row; flex-wrap:wrap; } }
@@ -211,6 +217,13 @@
               <tr><th>Last workout date</th><td id="progLastDate">-</td></tr>
             </tbody></table>
             <p class="hint">Open an exercise progress window (modal) to add logs and see exercise-specific best load, best reps, and trend history.</p>
+            <div style="margin-top:10px">
+              <label for="techExerciseSelect" class="muted" style="display:block;margin-bottom:6px">Exercise technique panel</label>
+              <select id="techExerciseSelect"></select>
+              <div class="tech-panel" id="techniquePanel">
+                <p class="muted" style="margin:0">Select an exercise to see setup, execution cues, and reliable references.</p>
+              </div>
+            </div>
           </article>
         </div>
       </section>
@@ -231,6 +244,7 @@
               <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn secondary" type="button" id="btnAddWorkoutDay">Add workout day</button>
                 <button class="btn ghost" type="button" id="btnAddRestDay">Add rest day</button>
+                <button class="btn secondary" type="button" id="btnApplyCoachSplit">Apply 7-day split</button>
                 <button class="btn danger" type="button" id="btnResetSchedule">Reset schedule template</button>
               </div>
             </div>
@@ -323,17 +337,90 @@
         calendar: document.getElementById("view-calendar"),
         printables: document.getElementById("view-printables"),
       };
-      const state = { activeTab: "dashboard", calendarMonth: startOfMonth(new Date()), selectedExerciseId: null, data: loadData() };
+      const state = { activeTab: "dashboard", calendarMonth: startOfMonth(new Date()), selectedExerciseId: null, selectedTechniqueExerciseId: null, data: loadData() };
 
       const CATALOG_LINES = [
-        "Barbell Back Squat|Lower|4|8","Goblet Squat|Lower|3|12","Front Squat|Lower|4|6","Leg Press|Lower|4|10","Hack Squat|Lower|4|10","Romanian Deadlift|Lower|3|10","Sumo Deadlift|Lower|3|6","Conventional Deadlift|Lower|3|5","Barbell Hip Thrust|Lower|4|10","Glute Bridge|Lower|3|15","Bulgarian Split Squat|Lower|3|10","Walking Lunge|Lower|3|12","Step-Up|Lower|3|10","Leg Extension|Lower|3|15","Leg Curl|Lower|3|12","Seated Calf Raise|Lower|4|15","Standing Calf Raise|Lower|4|15","Hip Abduction Machine|Lower|3|15","Hip Adduction Machine|Lower|3|15","Cable Pull-Through|Lower|3|12",
-        "Flat Barbell Bench|Upper|4|8","Incline Dumbbell Bench|Upper|3|10","Decline Bench Press|Upper|3|10","Dumbbell Fly|Upper|3|12","Cable Crossover|Upper|3|12","Overhead Press|Upper|4|8","Arnold Press|Upper|3|10","Lateral Raise|Upper|3|15","Rear Delt Fly|Upper|3|15","Face Pull|Upper|3|20","Barbell Row|Upper|4|8","Pendlay Row|Upper|4|6","One-Arm Dumbbell Row|Upper|3|10","Lat Pulldown|Upper|3|10","Assisted Pull-Up|Upper|3|8","Chin-Up|Upper|3|8","Straight-Arm Pulldown|Upper|3|12","Barbell Curl|Upper|3|10","Hammer Curl|Upper|3|10","Triceps Pushdown|Upper|3|12","Skullcrusher|Upper|3|10","Overhead Triceps Extension|Upper|3|12",
-        "Plank|Core|3|45s","Side Plank|Core|3|30s","Dead Bug|Core|3|10","Hanging Knee Raise|Core|3|12","Cable Crunch|Core|3|15","Pallof Press|Core|3|12","Farmer Carry|Full Body|4|40m","Sled Push|Cardio|4|20m","Bike Sprint|Cardio|6|20s","Treadmill Incline Walk|Cardio|1|30m"
+        "Barbell Back Squat|Lower|4|8","Back Squat (Barbell)|Lower|4|8","Goblet Squat|Lower|3|12","Front Squat|Lower|4|6","Leg Press|Lower|4|10","Hack Squat|Lower|4|10","Romanian Deadlift|Lower|3|10","Sumo Deadlift|Lower|3|6","Conventional Deadlift|Lower|3|5","Barbell Hip Thrust|Lower|4|10","Glute Bridge|Lower|3|15","Bulgarian Split Squat|Lower|3|10","Romanian Split Squat|Lower|3|10","Single-Leg RDL|Lower|3|10","Walking Lunge|Lower|3|12","Step-Up|Lower|3|10","Leg Extension|Lower|3|15","Leg Curl|Lower|3|12","Seated Calf Raise|Lower|4|15","Standing Calf Raise|Lower|3|12","Band Lateral Walk / Monster Walk|Lower|3|14","Hip Abduction Machine|Lower|3|15","Hip Adduction Machine|Lower|3|15","Cable Pull-Through|Lower|3|12",
+        "Flat Barbell Bench|Upper|4|8","Barbell Bench Press|Upper|4|8","Incline Dumbbell Bench|Upper|3|10","Incline DB Press|Upper|3|10","Decline Bench Press|Upper|3|10","Dumbbell Fly|Upper|3|12","Cable Crossover|Upper|3|12","Overhead Press|Upper|3|8","Arnold Press|Upper|3|10","Lateral Raise|Upper|3|12","Rear Delt Fly|Upper|3|15","Face Pull|Upper|3|20","Face Pull / External Rotation Hybrid (Band)|Upper|3|15","Barbell Row|Upper|4|8","Pendlay Row|Upper|4|6","One-Arm Dumbbell Row|Upper|4|8","One-Arm DB Row|Upper|4|8","Lat Pulldown|Upper|3|10","Banded Lat Pulldown (Kneeling)|Upper|4|12","Assisted Pull-Up|Upper|3|8","Chin-Up|Upper|3|8","Straight-Arm Pulldown|Upper|3|12","Barbell Curl|Upper|3|10","Hammer Curl|Upper|3|10","Triceps Pushdown|Upper|3|12","Skullcrusher|Upper|3|10","Overhead Triceps Extension|Upper|3|10","Push-Up|Upper|4|10","Band Pull-Apart|Upper|3|15","Band Row (Anchored)|Upper|3|12",
+        "Plank|Core|3|45","Side Plank|Core|3|30","Dead Bug|Core|3|8","Hanging Knee Raise|Core|3|12","Cable Crunch|Core|3|15","Pallof Press|Core|3|12","Farmer Carry|Full Body|4|30","Sled Push|Cardio|4|20","Bike Sprint|Cardio|6|20","Treadmill Incline Walk|Cardio|1|30"
       ];
+      const COACH_SPLIT_DAYS = [
+        { label: "Day 1 - Lower A (squat + hinge bias)", type: "workout", names: ["Back Squat (Barbell)", "Romanian Deadlift", "Bulgarian Split Squat", "Standing Calf Raise", "Band Lateral Walk / Monster Walk"] },
+        { label: "Day 2 - Upper A (horizontal push + pull bias)", type: "workout", names: ["Barbell Bench Press", "One-Arm DB Row", "Overhead Press", "Band Pull-Apart", "Hammer Curl", "Overhead Triceps Extension"] },
+        { label: "Day 3 - Rest", type: "rest", names: [] },
+        { label: "Day 4 - Lower B (hinge + single-leg bias)", type: "workout", names: ["Barbell Hip Thrust", "Front Squat", "Romanian Split Squat", "Single-Leg RDL", "Plank"] },
+        { label: "Day 5 - Upper B (vertical pull + shoulder/arm bias)", type: "workout", names: ["Pendlay Row", "Incline DB Press", "Banded Lat Pulldown (Kneeling)", "Lateral Raise", "Face Pull / External Rotation Hybrid (Band)"] },
+        { label: "Day 6 - Full Body C (metabolic strength)", type: "workout", names: ["Goblet Squat", "Push-Up", "Band Row (Anchored)", "Farmer Carry", "Dead Bug"] },
+        { label: "Day 7 - Rest", type: "rest", names: [] }
+      ];
+      const TECHNIQUE_GUIDES = {
+        squat: {
+          setup: ["Brace your midsection before each rep and keep feet rooted.", "Keep knees tracking over the middle toes while descending."],
+          execution: ["Descend under control to your active range, then drive up through mid-foot.", "Keep torso tension and avoid collapsing the chest."],
+          errors: ["Knee collapse inward", "Losing brace in the bottom position", "Heels lifting or bar drifting forward"],
+          sources: [{ label: "NSCA High Bar Back Squat", url: "https://www.nsca.com/education/videos/exercise-technique-high-bar-back-squat/" }, { label: "ExRx Front Squat", url: "https://exrx.net/WeightExercises/Quadriceps/BBFrontSquat" }]
+        },
+        hinge: {
+          setup: ["Start with ribs stacked over pelvis and a soft knee bend.", "Initiate by pushing hips back, not by bending through the spine."],
+          execution: ["Keep load close to the body and maintain neutral spine.", "Drive hips through at the top without overextending low back."],
+          errors: ["Rounding lower back", "Turning it into a squat", "Letting load drift away from shins"],
+          sources: [{ label: "ExRx Romanian Deadlift", url: "https://exrx.net/WeightExercises/OlympicLifts/RomanianDeadlift" }, { label: "NASM Dumbbell RDL", url: "https://www.nasm.org/resource-center/exercise-library/dumbbell-romanian-deadlift" }]
+        },
+        splitSquat: {
+          setup: ["Set a long enough stride so front foot is stable and flat.", "Keep torso upright with front knee and toes aligned."],
+          execution: ["Lower with control until rear knee nears floor, then push through front foot.", "Stay balanced and avoid torso twisting."],
+          errors: ["Front heel lifting", "Knee collapsing in", "Bouncing out of the bottom"],
+          sources: [{ label: "ExRx Single Leg Split Squat", url: "https://exrx.net/WeightExercises/Quadriceps/BWSingleLegSplitSquat" }]
+        },
+        benchPress: {
+          setup: ["Set shoulder blades down and back before unracking.", "Keep feet planted and wrists stacked over forearms."],
+          execution: ["Lower bar under control to chest line, then press up and slightly back.", "Maintain full-body tension and consistent bar path."],
+          errors: ["Elbows flaring too early", "Losing shoulder position", "Bouncing bar off chest"],
+          sources: [{ label: "ACE Chest Press", url: "https://www.acefitness.org/resources/everyone/exercise-library/5/chest-press" }, { label: "ACE Close-Grip Bench", url: "https://www.acefitness.org/resources/everyone/exercise-library/311/close-grip-bench-press/" }]
+        },
+        row: {
+          setup: ["Hinge and brace so spine stays long and neutral.", "Pull shoulder blade back before finishing with elbow."],
+          execution: ["Row toward lower ribs/waist while avoiding torso rotation.", "Lower with control to full stretch each rep."],
+          errors: ["Jerking with momentum", "Shrugging shoulders up", "Twisting torso on one-arm rows"],
+          sources: [{ label: "ACE Single Arm Row", url: "https://www.acefitness.org/resources/everyone/exercise-library/126/single-arm-row/" }, { label: "ACE Bent-Over Row", url: "https://www.acefitness.org/resources/everyone/exercise-library/12/bent-over-row/" }]
+        },
+        overheadPress: {
+          setup: ["Grip slightly wider than shoulders and brace glutes/core.", "Keep forearms vertical and bar close to face path."],
+          execution: ["Press overhead while moving head slightly back then through.", "Lock out with stacked ribcage, not low-back arch."],
+          errors: ["Overarching lumbar spine", "Pressing bar forward away from body", "Shrugging without shoulder control"],
+          sources: [{ label: "ExRx Barbell Military Press", url: "https://exrx.net/WeightExercises/DeltoidAnterior/BBMilitaryPress" }]
+        },
+        upperIsolation: {
+          setup: ["Use lighter load and prioritize clean control over load jumps.", "Set shoulder blades before each rep."],
+          execution: ["Move through full range with 1-2 second eccentric control.", "Keep tension in target muscle, avoid swinging."],
+          errors: ["Momentum cheating", "Incomplete range", "Shoulders rolling forward"],
+          sources: [{ label: "ACE Lateral Raise", url: "https://www.acefitness.org/resources/everyone/exercise-library/26/lateral-raise/" }, { label: "ACE Triceps Extension", url: "https://www.acefitness.org/resources/everyone/exercise-library/74/triceps-extension/" }, { label: "NASM Face Pull", url: "https://www.nasm.org/resource-center/exercise-library/face-pull" }]
+        },
+        core: {
+          setup: ["Set ribcage down and keep pelvis neutral.", "Breathe behind the brace instead of holding breath too long."],
+          execution: ["Maintain spinal position while limbs move slowly.", "Stop each set when lumbar position starts to break."],
+          errors: ["Low back arching", "Rushing reps", "Neck tension replacing core tension"],
+          sources: [{ label: "ExRx Front Plank", url: "https://exrx.net/WeightExercises/RectusAbdominis/BWFrontPlank" }, { label: "NSCA Dead Bug", url: "https://journals.lww.com/nsca-scj/abstract/2019/10000/exercise_technique__the_dead_bug.15.aspx" }]
+        },
+        carry: {
+          setup: ["Pick weights with a neutral spine and tall chest.", "Pack shoulders down and keep grip tight before walking."],
+          execution: ["Walk with short controlled steps and minimal sway.", "Maintain upright posture and steady breathing."],
+          errors: ["Shrugging shoulders", "Leaning side to side", "Letting weights drift in front"],
+          sources: [{ label: "NSCA Farmer's Walk", url: "https://www.nsca.com/education/articles/ptq/incorporating-the-farmers-walk-exercise-into-your-clients-program/" }]
+        },
+        pushupBand: {
+          setup: ["Create a straight line from head to heel (or incline setup).", "Hands under shoulders with active upper back."],
+          execution: ["Lower under control, then press while keeping ribs down.", "Use incline/bench if quality reps break down."],
+          errors: ["Sagging hips", "Elbows flaring hard", "Short range reps"],
+          sources: [{ label: "ACE Push-Up", url: "https://www.acefitness.org/education-and-resources/professional/expert-articles/7265/perfecting-the-push-up-for-all-levels" }, { label: "ACE Band Equipment Library", url: "https://www.acefitness.org/resources/everyone/exercise-library/equipment/resistance-bands-cables/" }]
+        }
+      };
 
       ensureExerciseCatalog();
       ensureSeedData();
+      ensureCoachSplitExercises();
       ensureDefaultSchedule();
+      migrateLegacyTemplateToCoachSplit();
       syncWholeScheduleIds();
       saveData();
       bindAll();
@@ -461,18 +548,40 @@
         const anchor = isoDateLocal(mondayOf(new Date()));
         state.data.schedule = {
           anchorDate: anchor,
-          days: [
-            makeScheduleDay("Day 1 - Lower A", "workout", ["Barbell Squat", "Barbell Hip Thrust", "Bulgarian Split Squat"]),
-            makeScheduleDay("Day 2 - Upper A", "workout", ["Flat Bench Press", "Barbell Row", "Overhead Press"]),
-            makeScheduleDay("Day 3 - Active recovery", "workout", ["Plank", "Walking Lunge"]),
-            makeScheduleDay("Day 4 - Lower B", "workout", ["Barbell Hip Thrust", "Barbell Squat", "Romanian Deadlift"]),
-            makeScheduleDay("Day 5 - Upper B", "workout", ["Barbell Row", "Flat Bench Press", "Overhead Press"]),
-            makeScheduleDay("Rest", "rest", []),
-            makeScheduleDay("Rest", "rest", []),
-          ],
+          days: getCoachSplitDays(),
         };
         syncWholeScheduleIds();
         saveData();
+      }
+      function getCoachSplitDays() {
+        return COACH_SPLIT_DAYS.map((d) => makeScheduleDay(d.label, d.type, d.names));
+      }
+      function ensureCoachSplitExercises() {
+        let changed = false;
+        COACH_SPLIT_DAYS.forEach((d) => {
+          d.names.forEach((name) => {
+            if (findExerciseIdByName(name)) return;
+            const c = catalogEntryByName(name);
+            if (c) state.data.exercises.push(makeExercise(c.name, c.category, c.sets, c.reps));
+            else state.data.exercises.push(makeExercise(name, "Full Body", 3, 10));
+            changed = true;
+          });
+        });
+        if (changed) saveData();
+      }
+      function applyCoachWeeklySplit() {
+        if (!state.data.schedule) state.data.schedule = { anchorDate: isoDateLocal(mondayOf(new Date())), days: [] };
+        state.data.schedule.days = getCoachSplitDays();
+        syncWholeScheduleIds();
+        saveData();
+        renderAll();
+      }
+      function migrateLegacyTemplateToCoachSplit() {
+        if (!state.data.schedule || !Array.isArray(state.data.schedule.days)) return;
+        const labels = state.data.schedule.days.map((d) => String(d.label || "").toLowerCase());
+        const legacy = labels.includes("day 1 - lower a") && labels.includes("day 3 - active recovery");
+        if (!legacy) return;
+        state.data.schedule.days = getCoachSplitDays();
       }
       function scheduleCycleLen() {
         const sch = state.data.schedule;
@@ -698,13 +807,21 @@
           saveData();
           renderAll();
         });
+        document.getElementById("btnApplyCoachSplit").addEventListener("click", () => {
+          if (!confirm("Replace your current schedule with your provided 7-day split?")) return;
+          applyCoachWeeklySplit();
+        });
         document.getElementById("btnResetSchedule").addEventListener("click", () => {
-          if (!confirm("Reset the whole schedule template to the starter 7-day block? Your workout logs stay safe.")) return;
+          if (!confirm("Reset the whole schedule template to your 7-day split? Your workout logs stay safe.")) return;
           delete state.data.schedule;
           ensureDefaultSchedule();
           syncWholeScheduleIds();
           saveData();
           renderAll();
+        });
+        document.getElementById("techExerciseSelect").addEventListener("change", (e) => {
+          state.selectedTechniqueExerciseId = e.target.value || null;
+          renderTechniquePanel();
         });
         document.getElementById("libFilter").addEventListener("input", () => renderLibraryList());
         document.getElementById("btnAddAllFiltered").addEventListener("click", () => {
@@ -796,6 +913,8 @@
         renderFullCalendar();
         renderExerciseList();
         renderProgramStats();
+        renderTechniqueOptions();
+        renderTechniquePanel();
       }
       function renderGreeting() {
         const name = localStorage.getItem(NAME_KEY) || "friend";
@@ -862,8 +981,14 @@
           const best = logs.reduce((m, l) => Math.max(m, Number(l.weight) || 0), 0);
           const item = document.createElement("article");
           item.className = "exercise-item";
-          item.innerHTML = "<div><strong>" + escapeHtml(ex.name) + "</strong><div class='meta'>" + escapeHtml(ex.category) + " - target " + ex.targetSets + "x" + ex.targetReps + " - logs: " + logs.length + " - best: " + round1(best) + " kg</div></div><div class='actions'><button class='btn ghost small' type='button' data-action='progress'>Progress</button><button class='btn danger small' type='button' data-action='remove'>Remove</button></div>";
+          item.innerHTML = "<div><strong>" + escapeHtml(ex.name) + "</strong><div class='meta'>" + escapeHtml(ex.category) + " - target " + ex.targetSets + "x" + ex.targetReps + " - logs: " + logs.length + " - best: " + round1(best) + " kg</div></div><div class='actions'><button class='btn ghost small' type='button' data-action='progress'>Progress</button><button class='btn secondary small' type='button' data-action='technique'>Technique</button><button class='btn danger small' type='button' data-action='remove'>Remove</button></div>";
           item.querySelector("[data-action='progress']").addEventListener("click", () => openLogModal(ex.id));
+          item.querySelector("[data-action='technique']").addEventListener("click", () => {
+            state.selectedTechniqueExerciseId = ex.id;
+            const picker = document.getElementById("techExerciseSelect");
+            if (picker) picker.value = ex.id;
+            renderTechniquePanel();
+          });
           item.querySelector("[data-action='remove']").addEventListener("click", () => {
             if (!confirm("Remove " + ex.name + " from your program?")) return;
             const dead = ex.name.toLowerCase();
@@ -881,6 +1006,59 @@
           });
           host.appendChild(item);
         });
+      }
+      function renderTechniqueOptions() {
+        const sel = document.getElementById("techExerciseSelect");
+        if (!sel) return;
+        const before = state.selectedTechniqueExerciseId || sel.value || "";
+        sel.innerHTML = "<option value=''>Select an exercise</option>";
+        state.data.exercises.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((ex) => {
+          const option = document.createElement("option");
+          option.value = ex.id;
+          option.textContent = ex.name;
+          sel.appendChild(option);
+        });
+        if (before && state.data.exercises.some((e) => e.id === before)) {
+          state.selectedTechniqueExerciseId = before;
+          sel.value = before;
+        } else if (state.data.exercises.length) {
+          state.selectedTechniqueExerciseId = state.data.exercises[0].id;
+          sel.value = state.selectedTechniqueExerciseId;
+        }
+      }
+      function normalizeName(name) {
+        return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      }
+      function techniqueKeyForName(name) {
+        const n = normalizeName(name);
+        if (n.includes("squat")) return "squat";
+        if (n.includes("deadlift") || n.includes("rdl") || n.includes("hip thrust")) return "hinge";
+        if (n.includes("split squat")) return "splitSquat";
+        if (n.includes("bench press") || n.includes("incline db press")) return "benchPress";
+        if (n.includes("row") || n.includes("pulldown")) return "row";
+        if (n.includes("overhead press")) return "overheadPress";
+        if (n.includes("curl") || n.includes("triceps") || n.includes("lateral raise") || n.includes("face pull")) return "upperIsolation";
+        if (n.includes("plank") || n.includes("dead bug")) return "core";
+        if (n.includes("carry")) return "carry";
+        if (n.includes("push up") || n.includes("band")) return "pushupBand";
+        return "upperIsolation";
+      }
+      function renderTechniquePanel() {
+        const host = document.getElementById("techniquePanel");
+        if (!host) return;
+        const ex = state.data.exercises.find((e) => e.id === state.selectedTechniqueExerciseId);
+        if (!ex) {
+          host.innerHTML = "<p class='muted' style='margin:0'>Select an exercise to see setup, execution cues, and reliable references.</p>";
+          return;
+        }
+        const key = techniqueKeyForName(ex.name);
+        const guide = TECHNIQUE_GUIDES[key];
+        host.innerHTML = "<h4>" + escapeHtml(ex.name) + "</h4>"
+          + "<p class='muted' style='margin:0 0 8px'>Technique quick-guide for your current program. Keep effort hard but repeatable and stop reps that break form.</p>"
+          + "<strong>Setup</strong><ul>" + guide.setup.map((line) => "<li>" + escapeHtml(line) + "</li>").join("") + "</ul>"
+          + "<strong>Execution</strong><ul>" + guide.execution.map((line) => "<li>" + escapeHtml(line) + "</li>").join("") + "</ul>"
+          + "<strong>Common mistakes</strong><ul>" + guide.errors.map((line) => "<li>" + escapeHtml(line) + "</li>").join("") + "</ul>"
+          + "<div class='src-list'>" + guide.sources.map((src) => "<a class='btn ghost small' target='_blank' rel='noopener' href='" + escapeHtml(src.url) + "'>" + escapeHtml(src.label) + "</a>").join("") + "</div>";
       }
       function renderProgramStats() {
         const logs = allLogs();
