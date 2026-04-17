@@ -106,6 +106,25 @@
     .chip { background:rgba(123,150,105,.2); border:1px solid rgba(64,78,59,.2); border-radius:999px; padding:4px 9px; font-size:.78rem; color:var(--deep); }
     .hint { margin-top:10px; font-size:.82rem; color:var(--slate); background:rgba(186,200,177,.35); border:1px solid rgba(123,150,105,.3); border-radius:10px; padding:9px 10px; }
 
+    .plan-grid { display:grid; grid-template-columns:repeat(3,minmax(220px,1fr)); gap:14px; margin-bottom:16px; }
+    @media (max-width:980px) { .plan-grid { grid-template-columns:1fr; } }
+    .plan-card { border:1px solid rgba(64,78,59,.12); border-radius:var(--radius-md); padding:14px; background:#fff; }
+    .plan-card h4 { margin:0 0 8px; font-size:0.95rem; }
+    .plan-card .tag { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--slate); font-weight:700; margin-bottom:6px; }
+    .plan-list { margin:0; padding-left:1.1rem; color:var(--deep); font-size:0.9rem; }
+    .plan-list li { margin:6px 0; }
+    .plan-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .warn { border-color:#ddb2b2; background:#fff6f6; }
+
+    .lib-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; }
+    .lib-list { max-height:260px; overflow:auto; border:1px solid rgba(64,78,59,.12); border-radius:10px; background:#fafafa; }
+    .lib-row { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:8px 10px; border-bottom:1px solid rgba(64,78,59,.08); font-size:0.88rem; }
+    .lib-row:last-child { border-bottom:0; }
+    .sched-day { border:1px solid rgba(64,78,59,.12); border-radius:12px; padding:12px; margin-bottom:10px; background:#fff; }
+    .sched-head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .sched-head input[type="text"] { flex:1; min-width:140px; }
+    select.multi { min-height:120px; }
+
     @media (max-width:1050px) { .stats-grid { grid-template-columns:repeat(2,minmax(120px,1fr)); } .grid, .workout-grid { grid-template-columns:1fr; } }
     @media (max-width:860px) { .app { flex-direction:column; } .sidebar { width:100%; min-height:unset; position:static; } .nav { flex-direction:row; flex-wrap:wrap; } }
   </style>
@@ -121,6 +140,7 @@
       <nav class="nav" aria-label="Primary">
         <button type="button" data-tab="dashboard" aria-current="true">Dashboard</button>
         <button type="button" data-tab="my-workouts">My Workouts</button>
+        <button type="button" data-tab="program">Program</button>
         <button type="button" data-tab="calendar">Calendar</button>
         <button type="button" data-tab="printables">Printables</button>
       </nav>
@@ -138,6 +158,7 @@
       </header>
 
       <section id="view-dashboard" class="view">
+        <div class="plan-grid" id="schedulePanels" aria-live="polite"></div>
         <div class="stats-grid">
           <article class="stat-box"><span>Total exercises</span><strong id="statExercises">0</strong></article>
           <article class="stat-box"><span>Total workout logs</span><strong id="statLogs">0</strong></article>
@@ -167,6 +188,7 @@
 
       <section id="view-my-workouts" class="view" hidden>
         <div class="section-title"><h2>My Workouts</h2><button class="btn primary" type="button" id="openPrintablesFromWorkouts">Go to printables</button></div>
+        <p class="muted" style="margin-top:-6px;margin-bottom:12px">These are the exercises you can log against. Add more from the <strong>Program</strong> tab exercise library, or create your own.</p>
         <div class="workout-grid">
           <article class="card">
             <h3>Add exercise to program</h3>
@@ -189,6 +211,40 @@
               <tr><th>Last workout date</th><td id="progLastDate">-</td></tr>
             </tbody></table>
             <p class="hint">Open an exercise progress window (modal) to add logs and see exercise-specific best load, best reps, and trend history.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-program" class="view" hidden>
+        <div class="section-title"><h2>Program</h2><button class="btn ghost" type="button" id="goDashboardFromProgram">Back to dashboard</button></div>
+        <p class="muted" style="margin-top:-6px;margin-bottom:14px">Set your rotation anchor (usually the Monday you started), then define each day as <strong>Workout</strong> or <strong>Rest</strong> and attach exercises from your list. The dashboard shows <strong>Today</strong>, <strong>Tomorrow</strong>, and <strong>Catch up</strong> if you missed a scheduled workout day.</p>
+
+        <div class="workout-grid">
+          <article class="card">
+            <h3>Rotation anchor</h3>
+            <p class="muted">Day 1 of your cycle is anchored to this calendar date.</p>
+            <div class="form-grid" style="margin-top:10px">
+              <div style="grid-column:1 / -1">
+                <label for="anchorDate">Anchor date (Day 1)</label>
+                <input type="date" id="anchorDate" />
+              </div>
+              <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn secondary" type="button" id="btnAddWorkoutDay">Add workout day</button>
+                <button class="btn ghost" type="button" id="btnAddRestDay">Add rest day</button>
+                <button class="btn danger" type="button" id="btnResetSchedule">Reset schedule template</button>
+              </div>
+            </div>
+            <div id="scheduleEditor" style="margin-top:12px"></div>
+          </article>
+
+          <article class="card">
+            <h3>Exercise library</h3>
+            <p class="muted">Pick exercises to add to <strong>My Workouts</strong> so you can log progress for every lift in your program.</p>
+            <div class="lib-toolbar">
+              <input class="pill-input" id="libFilter" placeholder="Filter library..." style="min-width:180px;flex:1" />
+              <button class="btn secondary small" type="button" id="btnAddAllFiltered">Add all visible</button>
+            </div>
+            <div class="lib-list" id="libraryList"></div>
           </article>
         </div>
       </section>
@@ -263,12 +319,23 @@
       const views = {
         dashboard: document.getElementById("view-dashboard"),
         "my-workouts": document.getElementById("view-my-workouts"),
+        program: document.getElementById("view-program"),
         calendar: document.getElementById("view-calendar"),
         printables: document.getElementById("view-printables"),
       };
       const state = { activeTab: "dashboard", calendarMonth: startOfMonth(new Date()), selectedExerciseId: null, data: loadData() };
 
+      const CATALOG_LINES = [
+        "Barbell Back Squat|Lower|4|8","Goblet Squat|Lower|3|12","Front Squat|Lower|4|6","Leg Press|Lower|4|10","Hack Squat|Lower|4|10","Romanian Deadlift|Lower|3|10","Sumo Deadlift|Lower|3|6","Conventional Deadlift|Lower|3|5","Barbell Hip Thrust|Lower|4|10","Glute Bridge|Lower|3|15","Bulgarian Split Squat|Lower|3|10","Walking Lunge|Lower|3|12","Step-Up|Lower|3|10","Leg Extension|Lower|3|15","Leg Curl|Lower|3|12","Seated Calf Raise|Lower|4|15","Standing Calf Raise|Lower|4|15","Hip Abduction Machine|Lower|3|15","Hip Adduction Machine|Lower|3|15","Cable Pull-Through|Lower|3|12",
+        "Flat Barbell Bench|Upper|4|8","Incline Dumbbell Bench|Upper|3|10","Decline Bench Press|Upper|3|10","Dumbbell Fly|Upper|3|12","Cable Crossover|Upper|3|12","Overhead Press|Upper|4|8","Arnold Press|Upper|3|10","Lateral Raise|Upper|3|15","Rear Delt Fly|Upper|3|15","Face Pull|Upper|3|20","Barbell Row|Upper|4|8","Pendlay Row|Upper|4|6","One-Arm Dumbbell Row|Upper|3|10","Lat Pulldown|Upper|3|10","Assisted Pull-Up|Upper|3|8","Chin-Up|Upper|3|8","Straight-Arm Pulldown|Upper|3|12","Barbell Curl|Upper|3|10","Hammer Curl|Upper|3|10","Triceps Pushdown|Upper|3|12","Skullcrusher|Upper|3|10","Overhead Triceps Extension|Upper|3|12",
+        "Plank|Core|3|45s","Side Plank|Core|3|30s","Dead Bug|Core|3|10","Hanging Knee Raise|Core|3|12","Cable Crunch|Core|3|15","Pallof Press|Core|3|12","Farmer Carry|Full Body|4|40m","Sled Push|Cardio|4|20m","Bike Sprint|Cardio|6|20s","Treadmill Incline Walk|Cardio|1|30m"
+      ];
+
+      ensureExerciseCatalog();
       ensureSeedData();
+      ensureDefaultSchedule();
+      syncWholeScheduleIds();
+      saveData();
       bindAll();
       renderAll();
       applyHashTab();
@@ -276,18 +343,65 @@
       function loadData() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return { exercises: [], logsByExercise: {}, workoutDays: {} };
+          if (!raw) return { exercises: [], logsByExercise: {}, workoutDays: {}, schedule: null, catalogSeeded: false };
           const parsed = JSON.parse(raw);
           return {
             exercises: Array.isArray(parsed.exercises) ? parsed.exercises : [],
             logsByExercise: parsed.logsByExercise && typeof parsed.logsByExercise === "object" ? parsed.logsByExercise : {},
             workoutDays: parsed.workoutDays && typeof parsed.workoutDays === "object" ? parsed.workoutDays : {},
+            schedule: parsed.schedule && typeof parsed.schedule === "object" ? parsed.schedule : null,
+            catalogSeeded: !!parsed.catalogSeeded,
           };
-        } catch (_) { return { exercises: [], logsByExercise: {}, workoutDays: {} }; }
+        } catch (_) { return { exercises: [], logsByExercise: {}, workoutDays: {}, schedule: null, catalogSeeded: false }; }
       }
       function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); }
       function makeExercise(name, category, targetSets, targetReps) {
         return { id: "ex_" + Math.random().toString(36).slice(2, 10), name: name, category: category, targetSets: Number(targetSets) || 4, targetReps: Number(targetReps) || 10, createdAt: new Date().toISOString() };
+      }
+      function isoDateLocal(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      }
+      function parseISOLocal(s) {
+        const p = String(s).split("-");
+        if (p.length !== 3) return new Date(NaN);
+        const y = Number(p[0]);
+        const mo = Number(p[1]) - 1;
+        const da = Number(p[2]);
+        return new Date(y, mo, da);
+      }
+      function diffCalendarDaysLocal(fromStr, toStr) {
+        const a = parseISOLocal(fromStr).getTime();
+        const b = parseISOLocal(toStr).getTime();
+        return Math.round((b - a) / 86400000);
+      }
+      function mod(a, b) {
+        if (!b) return 0;
+        return ((a % b) + b) % b;
+      }
+      function ensureExerciseCatalog() {
+        if (state.data.catalogSeeded) return;
+        state.data.catalogSeeded = true;
+        saveData();
+      }
+      function parseCatalog() {
+        return CATALOG_LINES.map((line) => {
+          const [name, category, sets, reps] = line.split("|");
+          return { name: name, category: category, sets: Number(sets) || 4, reps: Number(reps) || 10 };
+        });
+      }
+      function catalogNotInMyList() {
+        const mine = new Set(state.data.exercises.map((e) => e.name.toLowerCase()));
+        return parseCatalog().filter((c) => !mine.has(c.name.toLowerCase()));
+      }
+      function addExerciseFromCatalog(entry) {
+        if (state.data.exercises.some((e) => e.name.toLowerCase() === entry.name.toLowerCase())) return;
+        state.data.exercises.push(makeExercise(entry.name, entry.category, entry.sets, entry.reps));
+        syncWholeScheduleIds();
+        saveData();
+        renderAll();
       }
       function ensureSeedData() {
         if (state.data.exercises.length) return;
@@ -300,6 +414,246 @@
           makeExercise("Overhead Press", "Upper", 3, 8),
         ];
         saveData();
+      }
+      function findExerciseIdByName(name) {
+        const hit = state.data.exercises.find((e) => e.name.toLowerCase() === String(name).toLowerCase());
+        return hit ? hit.id : null;
+      }
+      function catalogEntryByName(name) {
+        const n = String(name).toLowerCase();
+        return parseCatalog().find((c) => c.name.toLowerCase() === n) || null;
+      }
+      function ensureExerciseNamed(name) {
+        let id = findExerciseIdByName(name);
+        if (id) return id;
+        const c = catalogEntryByName(name);
+        if (!c) return null;
+        const ex = makeExercise(c.name, c.category, c.sets, c.reps);
+        state.data.exercises.push(ex);
+        return ex.id;
+      }
+      function makeScheduleDay(label, type, names) {
+        const exerciseNames = (names || []).map(String);
+        const exerciseIds = exerciseNames.map((n) => findExerciseIdByName(n)).filter(Boolean);
+        return { id: "sd_" + Math.random().toString(36).slice(2, 9), label: label, type: type, exerciseNames: exerciseNames, exerciseIds: exerciseIds };
+      }
+      function syncScheduleDayIds(day) {
+        if (!Array.isArray(day.exerciseNames) || !day.exerciseNames.length) {
+          if (Array.isArray(day.exerciseIds) && day.exerciseIds.length) {
+            day.exerciseNames = day.exerciseIds.map((id) => {
+              const ex = state.data.exercises.find((e) => e.id === id);
+              return ex ? ex.name : null;
+            }).filter(Boolean);
+          } else {
+            day.exerciseNames = [];
+          }
+        }
+        const names = day.exerciseNames;
+        day.exerciseIds = names.map((n) => ensureExerciseNamed(n)).filter(Boolean);
+      }
+      function syncWholeScheduleIds() {
+        const sch = state.data.schedule;
+        if (!sch || !Array.isArray(sch.days)) return;
+        sch.days.forEach(syncScheduleDayIds);
+      }
+      function ensureDefaultSchedule() {
+        if (state.data.schedule && Array.isArray(state.data.schedule.days) && state.data.schedule.days.length) return;
+        const anchor = isoDateLocal(mondayOf(new Date()));
+        state.data.schedule = {
+          anchorDate: anchor,
+          days: [
+            makeScheduleDay("Day 1 - Lower A", "workout", ["Barbell Squat", "Barbell Hip Thrust", "Bulgarian Split Squat"]),
+            makeScheduleDay("Day 2 - Upper A", "workout", ["Flat Bench Press", "Barbell Row", "Overhead Press"]),
+            makeScheduleDay("Day 3 - Active recovery", "workout", ["Plank", "Walking Lunge"]),
+            makeScheduleDay("Day 4 - Lower B", "workout", ["Barbell Hip Thrust", "Barbell Squat", "Romanian Deadlift"]),
+            makeScheduleDay("Day 5 - Upper B", "workout", ["Barbell Row", "Flat Bench Press", "Overhead Press"]),
+            makeScheduleDay("Rest", "rest", []),
+            makeScheduleDay("Rest", "rest", []),
+          ],
+        };
+        syncWholeScheduleIds();
+        saveData();
+      }
+      function scheduleCycleLen() {
+        const sch = state.data.schedule;
+        return sch && Array.isArray(sch.days) && sch.days.length ? sch.days.length : 0;
+      }
+      function getScheduleAnchor() {
+        const sch = state.data.schedule;
+        if (!sch || !sch.anchorDate) return isoDateLocal(mondayOf(new Date()));
+        return sch.anchorDate;
+      }
+      function getPlanForCalendarDateStr(dateStr) {
+        const sch = state.data.schedule;
+        const L = scheduleCycleLen();
+        if (!L) return { label: "No schedule", type: "rest", exercises: [], slot: -1, dayRef: null };
+        const anchor = getScheduleAnchor();
+        const diff = diffCalendarDaysLocal(anchor, dateStr);
+        const k = mod(diff, L);
+        const day = sch.days[k];
+        const exercises = (day.exerciseIds || []).map((id) => state.data.exercises.find((e) => e.id === id)).filter(Boolean);
+        return { label: day.label, type: day.type, exercises: exercises, slot: k, dayRef: day };
+      }
+      function findLatestMissedWorkout(lookback) {
+        const max = lookback || 21;
+        const today = isoDateLocal(new Date());
+        for (let i = 1; i <= max; i++) {
+          const key = isoDateLocal(addDays(parseISOLocal(today), -i));
+          const plan = getPlanForCalendarDateStr(key);
+          if (plan.type !== "workout" || !plan.exercises.length) continue;
+          if (state.data.workoutDays[key]) continue;
+          return { date: key, plan: plan };
+        }
+        return null;
+      }
+      function renderSchedulePanels() {
+        const host = document.getElementById("schedulePanels");
+        if (!host) return;
+        const today = isoDateLocal(new Date());
+        const tomorrow = isoDateLocal(addDays(parseISOLocal(today), 1));
+        const todayPlan = getPlanForCalendarDateStr(today);
+        const tomorrowPlan = getPlanForCalendarDateStr(tomorrow);
+        const missed = findLatestMissedWorkout(21);
+        host.innerHTML = "";
+        host.appendChild(buildPlanCard("Today", today, todayPlan, { variant: "today" }));
+        host.appendChild(buildPlanCard("Tomorrow", tomorrow, tomorrowPlan, { variant: "tomorrow" }));
+        if (missed) {
+          const card = buildPlanCard("Catch up", missed.date, missed.plan, { variant: "catchup", missedDate: missed.date });
+          host.appendChild(card);
+        } else {
+          host.appendChild(buildPlanCard("Catch up", "", { label: "No missed sessions", type: "rest", exercises: [], slot: -1, dayRef: null }, { variant: "clear" }));
+        }
+      }
+      function buildPlanCard(title, dateStr, plan, opts) {
+        const card = document.createElement("article");
+        card.className = "plan-card" + (opts.variant === "catchup" ? " warn" : "");
+        const dateLine = dateStr ? new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(parseISOLocal(dateStr)) : "";
+        const sub = plan.type === "rest" ? "Rest day in your rotation" : escapeHtml(plan.label);
+        let body = "";
+        if (opts.variant === "clear") {
+          body = "<p class='muted' style='margin:0;font-size:0.88rem'>No past workout day in your template is both unlogged on the calendar and still pending. If you skip a session, it will show here until you complete it or mark the day.</p>";
+        } else if (plan.type === "rest" || !plan.exercises.length) {
+          body = "<p class='muted' style='margin:0;font-size:0.88rem'>No lifts scheduled — recovery or add exercises in the Program tab.</p>";
+        } else {
+          body = "<ul class='plan-list'>" + plan.exercises.map((ex) => "<li>" + escapeHtml(ex.name) + " <span class='muted'>(" + ex.targetSets + "×" + ex.targetReps + ")</span></li>").join("") + "</ul>";
+          body += "<div class='plan-actions'>";
+          plan.exercises.forEach((ex) => {
+            body += "<button class='btn secondary small' type='button' data-log='" + escapeHtml(ex.id) + "'>Log " + escapeHtml(ex.name) + "</button>";
+          });
+          body += "<button class='btn ghost small' type='button' data-tab-workouts>My Workouts</button></div>";
+        }
+        if (opts.variant === "catchup" && opts.missedDate) {
+          body += "<div class='plan-actions' style='margin-top:8px'><button class='btn primary small' type='button' data-mark-done='" + escapeHtml(opts.missedDate) + "'>Mark " + escapeHtml(opts.missedDate) + " done (calendar)</button></div>";
+        }
+        card.innerHTML = "<div class='tag'>" + escapeHtml(title) + "</div><h4>" + (dateLine || escapeHtml(plan.label || "")) + "</h4><p class='muted' style='margin:0 0 8px;font-size:0.82rem'>" + sub + "</p>" + body;
+        card.querySelectorAll("[data-log]").forEach((btn) => btn.addEventListener("click", () => openLogModal(btn.getAttribute("data-log"))));
+        const tw = card.querySelector("[data-tab-workouts]");
+        if (tw) tw.addEventListener("click", () => setTab("my-workouts"));
+        const md = card.querySelector("[data-mark-done]");
+        if (md) md.addEventListener("click", () => {
+          state.data.workoutDays[md.getAttribute("data-mark-done")] = true;
+          saveData();
+          renderAll();
+        });
+        return card;
+      }
+      function renderScheduleEditor() {
+        const host = document.getElementById("scheduleEditor");
+        const anchorEl = document.getElementById("anchorDate");
+        const sch = state.data.schedule;
+        if (!sch || !host) return;
+        if (anchorEl) anchorEl.value = sch.anchorDate || "";
+        host.innerHTML = "";
+        sch.days.forEach((day) => {
+          const wrap = document.createElement("div");
+          wrap.className = "sched-day";
+          const head = document.createElement("div");
+          head.className = "sched-head";
+          const labelInp = document.createElement("input");
+          labelInp.type = "text";
+          labelInp.value = day.label;
+          labelInp.addEventListener("change", () => { day.label = labelInp.value.trim() || day.label; saveData(); renderSchedulePanels(); });
+          const typeSel = document.createElement("select");
+          [["workout", "Workout"], ["rest", "Rest"]].forEach(([val, lab]) => {
+            const o = document.createElement("option");
+            o.value = val;
+            o.textContent = lab;
+            typeSel.appendChild(o);
+          });
+          typeSel.value = day.type;
+          typeSel.addEventListener("change", () => { day.type = typeSel.value; saveData(); renderAll(); });
+          const rm = document.createElement("button");
+          rm.type = "button";
+          rm.className = "btn danger small";
+          rm.textContent = "Remove day";
+          rm.addEventListener("click", () => {
+            if (!confirm("Remove this day from the cycle?")) return;
+            const at = sch.days.findIndex((d) => d.id === day.id);
+            if (at >= 0) sch.days.splice(at, 1);
+            if (!sch.days.length) sch.days.push(makeScheduleDay("Rest", "rest", []));
+            saveData();
+            renderAll();
+          });
+          head.appendChild(labelInp);
+          head.appendChild(typeSel);
+          head.appendChild(rm);
+          wrap.appendChild(head);
+          const sel = document.createElement("select");
+          sel.multiple = true;
+          sel.className = "multi";
+          sel.setAttribute("aria-label", "Exercises for " + day.label);
+          state.data.exercises.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((ex) => {
+            const o = document.createElement("option");
+            o.value = ex.id;
+            o.textContent = ex.name + " (" + ex.category + ")";
+            if ((day.exerciseIds || []).includes(ex.id)) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener("change", () => {
+            day.exerciseIds = Array.from(sel.selectedOptions).map((o) => o.value);
+            day.exerciseNames = day.exerciseIds.map((id) => {
+              const ex = state.data.exercises.find((e) => e.id === id);
+              return ex ? ex.name : null;
+            }).filter(Boolean);
+            saveData();
+            renderSchedulePanels();
+          });
+          const hint = document.createElement("p");
+          hint.className = "muted";
+          hint.style.fontSize = "0.8rem";
+          hint.style.margin = "6px 0 0";
+          hint.textContent = "Hold Ctrl or Cmd to pick several exercises for this workout day.";
+          wrap.appendChild(sel);
+          wrap.appendChild(hint);
+          host.appendChild(wrap);
+        });
+      }
+      function renderLibraryList() {
+        const host = document.getElementById("libraryList");
+        if (!host) return;
+        const q = (document.getElementById("libFilter") && document.getElementById("libFilter").value || "").trim().toLowerCase();
+        const rows = catalogNotInMyList().filter((c) => !q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+        host.innerHTML = "";
+        if (!rows.length) {
+          const empty = document.createElement("div");
+          empty.className = "lib-row";
+          empty.innerHTML = "<span>" + (q ? "No library matches — try another filter." : "Library is fully merged into My Workouts.") + "</span>";
+          host.appendChild(empty);
+          return;
+        }
+        rows.forEach((entry) => {
+          const row = document.createElement("div");
+          row.className = "lib-row";
+          row.dataset.name = entry.name;
+          row.innerHTML = "<span><strong>" + escapeHtml(entry.name) + "</strong> · " + escapeHtml(entry.category) + " · " + entry.sets + "×" + escapeHtml(String(entry.reps)) + "</span>";
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn secondary small";
+          b.textContent = "Add";
+          b.addEventListener("click", () => { addExerciseFromCatalog(entry); });
+          row.appendChild(b);
+          host.appendChild(row);
+        });
       }
       function bindAll() {
         document.querySelectorAll(".nav button").forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
@@ -324,6 +678,49 @@
           document.getElementById("exSets").value = "4";
           document.getElementById("exReps").value = "10";
           renderAll();
+        });
+        document.getElementById("goDashboardFromProgram").addEventListener("click", () => setTab("dashboard"));
+        document.getElementById("anchorDate").addEventListener("change", () => {
+          if (!state.data.schedule) return;
+          state.data.schedule.anchorDate = document.getElementById("anchorDate").value || isoDateLocal(mondayOf(new Date()));
+          saveData();
+          renderSchedulePanels();
+        });
+        document.getElementById("btnAddWorkoutDay").addEventListener("click", () => {
+          if (!state.data.schedule) return;
+          state.data.schedule.days.push(makeScheduleDay("New workout day", "workout", []));
+          saveData();
+          renderAll();
+        });
+        document.getElementById("btnAddRestDay").addEventListener("click", () => {
+          if (!state.data.schedule) return;
+          state.data.schedule.days.push(makeScheduleDay("Rest", "rest", []));
+          saveData();
+          renderAll();
+        });
+        document.getElementById("btnResetSchedule").addEventListener("click", () => {
+          if (!confirm("Reset the whole schedule template to the starter 7-day block? Your workout logs stay safe.")) return;
+          delete state.data.schedule;
+          ensureDefaultSchedule();
+          syncWholeScheduleIds();
+          saveData();
+          renderAll();
+        });
+        document.getElementById("libFilter").addEventListener("input", () => renderLibraryList());
+        document.getElementById("btnAddAllFiltered").addEventListener("click", () => {
+          const q = document.getElementById("libFilter").value.trim().toLowerCase();
+          const rows = catalogNotInMyList().filter((c) => !q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+          let any = false;
+          rows.forEach((entry) => {
+            if (state.data.exercises.some((e) => e.name.toLowerCase() === entry.name.toLowerCase())) return;
+            state.data.exercises.push(makeExercise(entry.name, entry.category, entry.sets, entry.reps));
+            any = true;
+          });
+          if (any) {
+            syncWholeScheduleIds();
+            saveData();
+            renderAll();
+          }
         });
         document.getElementById("miniPrev").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, -1); renderMiniCalendar(); });
         document.getElementById("miniNext").addEventListener("click", () => { state.calendarMonth = addMonths(state.calendarMonth, 1); renderMiniCalendar(); });
@@ -363,12 +760,12 @@
           state.data.workoutDays[date] = true;
           saveData();
           this.reset();
-          document.getElementById("logDate").value = isoDate(new Date());
+          document.getElementById("logDate").value = isoDateLocal(new Date());
           renderAll();
           renderLogModal();
         });
         document.getElementById("markDateOnly").addEventListener("click", () => {
-          const d = document.getElementById("logDate").value || isoDate(new Date());
+          const d = document.getElementById("logDate").value || isoDateLocal(new Date());
           state.data.workoutDays[d] = true;
           saveData();
           renderAll();
@@ -392,6 +789,9 @@
       function renderAll() {
         renderGreeting();
         renderDashboardStats();
+        renderSchedulePanels();
+        renderScheduleEditor();
+        renderLibraryList();
         renderMiniCalendar();
         renderFullCalendar();
         renderExerciseList();
@@ -438,10 +838,10 @@
           host.appendChild(hd);
         });
         for (let i = 0; i < firstWeekday; i++) { const gap = document.createElement("button"); gap.className = "day-btn empty"; host.appendChild(gap); }
-        const today = isoDate(new Date());
+        const today = isoDateLocal(new Date());
         for (let d = 1; d <= count; d++) {
           const dt = new Date(start.getFullYear(), start.getMonth(), d);
-          const key = isoDate(dt);
+          const key = isoDateLocal(dt);
           const btn = document.createElement("button");
           btn.className = "day-btn";
           if (state.data.workoutDays[key]) btn.classList.add("done");
@@ -466,9 +866,18 @@
           item.querySelector("[data-action='progress']").addEventListener("click", () => openLogModal(ex.id));
           item.querySelector("[data-action='remove']").addEventListener("click", () => {
             if (!confirm("Remove " + ex.name + " from your program?")) return;
+            const dead = ex.name.toLowerCase();
             state.data.exercises = state.data.exercises.filter((it) => it.id !== ex.id);
             delete state.data.logsByExercise[ex.id];
-            saveData(); renderAll();
+            const sch = state.data.schedule;
+            if (sch && Array.isArray(sch.days)) {
+              sch.days.forEach((day) => {
+                day.exerciseNames = (day.exerciseNames || []).filter((n) => String(n).toLowerCase() !== dead);
+                syncScheduleDayIds(day);
+              });
+            }
+            saveData();
+            renderAll();
           });
           host.appendChild(item);
         });
@@ -491,7 +900,7 @@
       function openLogModal(exerciseId) {
         state.selectedExerciseId = exerciseId;
         document.getElementById("logModal").classList.add("open");
-        document.getElementById("logDate").value = isoDate(new Date());
+        document.getElementById("logDate").value = isoDateLocal(new Date());
         renderLogModal();
       }
       function closeLogModal() { document.getElementById("logModal").classList.remove("open"); }
@@ -536,10 +945,19 @@
       }
       function fillSessionLog(doc) {
         const lines = doc.querySelectorAll(".meta .line");
-        if (lines[0]) lines[0].textContent = isoDate(new Date());
+        if (lines[0]) lines[0].textContent = isoDateLocal(new Date());
         if (lines[1]) lines[1].textContent = "Auto-filled from Train Sheets";
         if (lines[2]) lines[2].textContent = "Prepared for " + (localStorage.getItem(NAME_KEY) || "Client");
-        const ex = state.data.exercises.slice(0, 16);
+        const todayPlan = getPlanForCalendarDateStr(isoDateLocal(new Date()));
+        let ex = todayPlan.exercises.slice();
+        const used = new Set(ex.map((e) => e.id));
+        state.data.exercises.forEach((e) => {
+          if (ex.length >= 16) return;
+          if (!used.has(e.id)) {
+            ex.push(e);
+            used.add(e.id);
+          }
+        });
         fillStrengthTable(doc.querySelector("table[aria-label='Strength training']"), ex.slice(0, 8));
         fillStrengthTable(doc.querySelector("table[aria-label='Strength training B']"), ex.slice(8, 16));
       }
@@ -572,7 +990,7 @@
       function fillMesocycle(doc) {
         const start = mondayOf(addDays(new Date(), -21));
         const info = doc.querySelector(".sub");
-        if (info) info.textContent = "Mesocycle start date: " + isoDate(start) + "   Bodyweight (optional): ____________   Protein target (g/day): ____________";
+        if (info) info.textContent = "Mesocycle start date: " + isoDateLocal(start) + "   Bodyweight (optional): ____________   Protein target (g/day): ____________";
         const rows = Array.from(doc.querySelectorAll("table[aria-label='Weekly checklist'] tbody tr"));
         for (let w = 0; w < 4; w++) {
           const check = rows[w * 2];
@@ -581,7 +999,7 @@
           let doneCount = 0;
           for (let d = 0; d < 7; d++) {
             const dayDate = addDays(start, w * 7 + d);
-            const key = isoDate(dayDate);
+            const key = isoDateLocal(dayDate);
             const done = !!state.data.workoutDays[key];
             const cell = check.children[d + 1];
             if (cell) cell.textContent = done ? "✓ " + String(dayDate.getDate()).padStart(2, "0") : String(dayDate.getDate()).padStart(2, "0");
@@ -605,7 +1023,7 @@
           for (let w = 0; w < 4; w++) {
             const start = starts[w];
             const end = addDays(start, 6);
-            const weekly = logs.filter((l) => l.date >= isoDate(start) && l.date <= isoDate(end));
+            const weekly = logs.filter((l) => l.date >= isoDateLocal(start) && l.date <= isoDateLocal(end));
             const best = weekly.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0))[0];
             const kgCell = row.children[1 + w * 2];
             const repsCell = row.children[2 + w * 2];
@@ -642,14 +1060,13 @@
         const logs = getExerciseLogs(exerciseId).slice().sort((a, b) => a.date.localeCompare(b.date));
         return logs.length ? logs[logs.length - 1] : null;
       }
-      function isoDate(date) { return date.toISOString().slice(0, 10); }
       function addDays(date, n) { const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()); d.setDate(d.getDate() + n); return d; }
       function addMonths(date, n) { return new Date(date.getFullYear(), date.getMonth() + n, 1); }
       function startOfMonth(date) { return new Date(date.getFullYear(), date.getMonth(), 1); }
       function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
       function shortWeekday(date) { return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()]; }
       function monthLabel(date) { return new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(date); }
-      function monthPrefix(date) { return isoDate(new Date(date.getFullYear(), date.getMonth(), 1)).slice(0, 7); }
+      function monthPrefix(date) { return isoDateLocal(new Date(date.getFullYear(), date.getMonth(), 1)).slice(0, 7); }
       function mondayOf(date) { const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()); const day = (d.getDay() + 6) % 7; return addDays(d, -day); }
       function round1(n) { return Math.round((Number(n) || 0) * 10) / 10; }
       function escapeHtml(s) { return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;"); }
